@@ -30,7 +30,7 @@ const ICON_NAMES = {
   sombrinha: 'sombrinha', bolo: 'bolo de rolo', renda: 'renda', cordel: 'cordel', barro: 'barro',
 };
 
-// ---------- 1: Acenda o Casario (lights-out NxN) ----------
+// ---------- 1: Acenda o casa (lights-out NxN) ----------
 class LightsPuzzle {
   constructor(cfg = {}) {
     this.n = cfg.n || 3;

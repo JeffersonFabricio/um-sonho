@@ -11,7 +11,7 @@ desenhada por código) e sem servidor de backend. Roda em qualquer navegador de 
 
 | # | Cordão | Tema | Fase-âncora |
 |---|--------|------|-------------|
-| 1 | Dias de Sol | Marco Zero, Rua do Bom Jesus, Torre Malakoff... | Acender o casario |
+| 1 | Dias de Sol | Marco Zero, Rua do Bom Jesus, Torre Malakoff... | Acender o casa |
 | 2 | Beira-Mar | Boa Viagem, Piedade, arrecifes, Candeias | Memória + tubarão |
 | 3 | Dias de Chuva | Inverno recifense, São João, Cais do Sertão | Canos da chuva |
 | 4 | Coração de Mangue | Uçá, guaiamum, garças, maré de sizígia | Labirinto do uçá |

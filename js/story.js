@@ -30,13 +30,13 @@ const STORY = {
       title: 'Dias de Sol', place: 'Marco Zero',
       beadName: 'Conta do Sol', beadColor: '#f2c038',
       intro: [
-        { who: 'nar',  text: 'Marco Zero, coração do Recife Antigo. O sol nasce dourando o casario colorido.' },
+        { who: 'nar',  text: 'Marco Zero, coração do Recife Antigo. O sol nasce dourando o casa colorido.' },
         { who: 'maju', text: 'A primeira conta caiu aqui, onde a cidade começou!' },
         { who: 'vovo', text: 'O Marco Zero é o quilômetro zero de Pernambuco. Tudo parte daqui, como você agora.' },
-        { who: 'maju', text: 'As janelas do casario ainda estão escuras... Se eu acender todas, o sol devolve a conta!' },
+        { who: 'maju', text: 'As janelas do casa ainda estão escuras... Se eu acender todas, o sol devolve a conta!' },
       ],
       outro: [
-        { who: 'nar',  text: 'As janelas se acendem e o casario inteiro sorri dourado.' },
+        { who: 'nar',  text: 'As janelas se acendem e o casa inteiro sorri dourado.' },
         { who: 'maju', text: 'A Conta do Sol! Quentinha como manhã de janeiro!' },
         { who: 'vovo', text: 'Dia de sol no Recife é convite. E a cidade nunca recusa um convite.' },
       ],
@@ -75,7 +75,7 @@ const STORY = {
       beadName: 'Conta da Chuva', beadColor: '#7d9fb4',
       intro: [
         { who: 'nar',  text: 'O céu fechou. Chuva de inverno recifense: a cidade vira aquarela cinzenta.' },
-        { who: 'maju', text: 'A conta desceu pelas calhas do casario junto com a água da chuva!' },
+        { who: 'maju', text: 'A conta desceu pelas calhas do casa junto com a água da chuva!' },
         { who: 'vovo', text: 'Junho no Recife é assim: chove sem pedir licença. A cidade aprendeu a dançar na chuva.' },
         { who: 'maju', text: 'Vou girar os canos pra levar a água da calha até a cisterna. A conta vem junto!' },
       ],

@@ -160,8 +160,8 @@ function cloud(ctx, x, y, w, c = '#ffffff') {
   PR(ctx, x, y, w, 10, c);
 }
 
-function casario(ctx, yBase, seed = 0) {
-  // casario colorido do Recife Antigo
+function casa(ctx, yBase, seed = 0) {
+  // casa colorido do Recife Antigo
   let x = -8;
   let i = seed;
   while (x < 360) {
@@ -471,7 +471,7 @@ const SCENES = {
     sun(ctx, 290, 80, 26, t);
     cloud(ctx, 30 + Math.sin(t * 0.3) * 10, 60, 50);
     cloud(ctx, 150, 110, 38, '#f0f8fc');
-    casario(ctx, 420, 0);
+    casa(ctx, 420, 0);
     PR(ctx, 0, 420, 360, 220, '#d8c8a8'); // praça
     // rosa dos ventos do Marco Zero
     PR(ctx, 150, 480, 60, 60, '#c8b490');
@@ -502,7 +502,7 @@ const SCENES = {
     cloud(ctx, 40, 50, 70, '#4a5a68');
     cloud(ctx, 180, 80, 90, '#43525f');
     cloud(ctx, 280, 40, 60, '#4a5a68');
-    casario(ctx, 420, 2);
+    casa(ctx, 420, 2);
     PR(ctx, 0, 420, 360, 220, '#5a6b7a');
     PR(ctx, 40, 460, 80, 8, '#7d9fb4'); // poças
     PR(ctx, 220, 520, 100, 8, '#7d9fb4');
@@ -524,7 +524,7 @@ const SCENES = {
   },
   6(ctx, t) { // Cultura Viva — mercado
     skyBands(ctx, ['#e8b96a', '#e8a05a'], 0, 300);
-    casario(ctx, 380, 4);
+    casa(ctx, 380, 4);
     PR(ctx, 0, 380, 360, 260, '#b08a5a');
     bandeirinhas(ctx, 40, t);
     bandeirinhas(ctx, 80, t + 2);
@@ -534,7 +534,7 @@ const SCENES = {
     stars(ctx, 50, 350);
     PR(ctx, 290, 60, 30, 30, '#f0ead0'); // lua
     PR(ctx, 296, 66, 8, 8, '#d8d0b0');
-    casarioSilhueta(ctx, 440);
+    casaSilhueta(ctx, 440);
     PR(ctx, 0, 440, 360, 200, '#1a1525');
     // tochas
     [40, 320].forEach(x => {
@@ -547,7 +547,7 @@ const SCENES = {
   8(ctx, t) { // Frevo no Ar
     skyBands(ctx, ['#7ec8e8', '#9fd8f0', '#bfe6f2'], 0, 400);
     sun(ctx, 310, 60, 20, t);
-    casario(ctx, 400, 1);
+    casa(ctx, 400, 1);
     PR(ctx, 0, 400, 360, 240, '#c8b490');
     bandeirinhas(ctx, 100, t);
     confete(ctx, t);
@@ -555,7 +555,7 @@ const SCENES = {
   9(ctx, t) { // Manguebeat — crepúsculo
     skyBands(ctx, ['#2a4a55', '#3a6a6a', '#5a8a78', '#8aa888'], 0, 420);
     stars(ctx, 20, 160);
-    casarioSilhueta(ctx, 380, '#13242a');
+    casaSilhueta(ctx, 380, '#13242a');
     PR(ctx, 0, 380, 360, 260, '#2a2418'); // lama do mangue
     mangueRootsSil(ctx, 440);
     antena(ctx, 80, 560, 1.4);
@@ -573,7 +573,7 @@ const SCENES = {
   },
 };
 
-function casarioSilhueta(ctx, yBase, c = '#0d1525') {
+function casaSilhueta(ctx, yBase, c = '#0d1525') {
   let x = -8, i = 0;
   while (x < 360) {
     const w = 44 + ((i * 13) % 3) * 8;

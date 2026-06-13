@@ -10,11 +10,11 @@ const CHAPTERS = [
     scene: 1, color: '#f2c038', cord: 'Cordão do Sol',
     fases: [
       { anchor: 1, e: 1 },
-      { t: 'Rua do Bom Jesus', e: 2, fact: 'A Rua do Bom Jesus, com seu casario colorido, já foi eleita uma das ruas mais bonitas do mundo.' },
+      { t: 'Rua do Bom Jesus', e: 2, fact: 'A Rua do Bom Jesus, com seu casa colorido, já foi eleita uma das ruas mais bonitas do mundo.' },
       { t: 'Kahal Zur Israel', e: 4, fact: 'Na Rua do Bom Jesus fica a Kahal Zur Israel, a primeira sinagoga das Américas, fundada em 1636.' },
       { t: 'Torre Malakoff', e: 7, fact: 'A Torre Malakoff era a porta do antigo Arsenal da Marinha. Hoje é mirante e observatório do céu.' },
       { t: 'Ponte Maurício de Nassau', e: 5, fact: 'A Ponte Maurício de Nassau, de 1644, é tida como a primeira grande ponte do Brasil.' },
-      { t: 'Rua da Aurora', e: 8, fact: 'Na Rua da Aurora, o casario cor de pastel se espelha nas águas do Capibaribe desde o século XIX.' },
+      { t: 'Rua da Aurora', e: 8, fact: 'Na Rua da Aurora, o casa cor de pastel se espelha nas águas do Capibaribe desde o século XIX.' },
       { t: 'Forte do Brum', e: 6, fact: 'O Forte do Brum vigia a entrada do porto do Recife desde 1629.' },
       { t: 'Praça do Arsenal', e: 10, fact: 'A Praça do Arsenal reúne feirinhas, livros e poesia de rua no coração do Bairro do Recife.' },
       { t: 'Rosa dos Ventos', e: 9, fact: 'A rosa dos ventos do Marco Zero foi desenhada pelo pintor pernambucano Cícero Dias.' },
