@@ -1,7 +1,7 @@
 {
   "name": "Marés do Recife",
   "short_name": "Marés",
-  "description": "Jogo em pixel art com 10 fases de história e puzzles pelo Recife, Pernambuco.",
+  "description": "Mundo livre em pixel art: explore o Recife e recupere as 81 contas em 81 puzzles de história.",
   "lang": "pt-BR",
   "start_url": "./index.html",
   "display": "fullscreen",

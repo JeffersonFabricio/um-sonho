@@ -25,6 +25,23 @@ function drawMap(ctx, map, pal, x, y, s = U) {
   }
 }
 
+// desenha só um trecho do mapa (linhas r0..r1, colunas c0..c1) — usado p/
+// animar partes do corpo (ex.: cada perna sobe/desce de forma independente).
+// As linhas são reposicionadas a partir de y (origem = linha r0).
+function drawMapPart(ctx, map, pal, x, y, s, r0, r1, c0 = 0, c1 = 99) {
+  for (let r = r0; r < r1 && r < map.length; r++) {
+    const row = map[r];
+    const cMax = Math.min(c1, row.length);
+    for (let c = c0; c < cMax; c++) {
+      const ch = row[c];
+      if (ch === '.') continue;
+      const col = pal[ch];
+      if (!col) continue;
+      PR(ctx, x + c * s, y + (r - r0) * s, s, s, col);
+    }
+  }
+}
+
 // ---------- personagens ----------
 // (grade 12 de largura; sombreamento embutido p/ dar volume)
 const MAJU_MAP = [
@@ -138,6 +155,117 @@ const SHARK_PAL = { s: '#5a6b7a', w: '#c8d4dc', k: '#0e141a' };
 
 function drawMaju(ctx, x, y, s = U) { drawMap(ctx, MAJU_MAP, MAJU_PAL, x, y, s); }
 function drawVovo(ctx, x, y, s = U) { drawMap(ctx, VOVO_MAP, VOVO_PAL, x, y, s); }
+
+// Maju andando no mundo livre: centrada em (cx, cy=pés), espelha p/ esquerda.
+// `phase` é a fase do passo (avança com a DISTÂNCIA andada — passos desaceleram
+// quando ela anda devagar). Pernas alternam pisando, corpo balança, a sombra
+// achata quando o pé planta e sai uma poeirinha a cada passada.
+function drawMajuWalk(ctx, cx, cy, face, moving, phase, t) {
+  const s = 3;
+  const sn = Math.sin(phase);
+  const bob = moving ? Math.abs(sn) * 2.4 : Math.sin(t * 2) * 0.5 + 0.5;
+  const lean = moving ? Math.round(sn * 0.9) : 0;       // balanço do tronco
+  // sombra: alarga quando o pé encosta no chão (sn ~ 0)
+  const sw = 24 + (moving ? (1 - Math.abs(sn)) * 8 : 0);
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  PR(ctx, cx - sw / 2, cy + 1, sw, 6, '#000');
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(cx, 0);
+  if (face === 'L') ctx.scale(-1, 1);
+  const ox = -6 * s;
+  const oy = Math.round(cy - 18 * s - bob);
+  // poeirinha no pé que está plantado
+  if (moving) {
+    const da = (1 - Math.abs(sn)) * 0.3;
+    if (da > 0.04) {
+      ctx.globalAlpha = da;
+      const fx = (sn > 0 ? 3 : -3) * s;
+      PR(ctx, fx - 2, cy - 1, 4, 2, '#fff');
+      PR(ctx, fx + 2, cy, 3, 2, '#fff');
+      ctx.globalAlpha = 1;
+    }
+  }
+  // tronco + cabeça (linhas 0..14) com leve balanço lateral
+  drawMapPart(ctx, MAJU_MAP, MAJU_PAL, ox + lean, oy, s, 0, 15);
+  // pernas (linhas 15..17): a da frente sobe enquanto a de trás planta
+  const lift = moving ? 2.6 : 0;
+  const lL = Math.round(Math.max(0, sn) * lift);
+  const lR = Math.round(Math.max(0, -sn) * lift);
+  const stepX = moving ? Math.round(sn * 1.3) : 0;       // passada p/ frente/trás
+  const legY = oy + 15 * s;
+  drawMapPart(ctx, MAJU_MAP, MAJU_PAL, ox + stepX, legY - lL, s, 15, 18, 0, 6);   // perna esquerda
+  drawMapPart(ctx, MAJU_MAP, MAJU_PAL, ox - stepX, legY - lR, s, 15, 18, 6, 12);  // perna direita
+  ctx.restore();
+}
+
+// ---------- personagens-guia da família ----------
+// Jonatha (menino): boné e camisa verdes
+const JONA_MAP = [
+  '...gggg.....',
+  '..gggggggg..',
+  '.gggggggggg.',
+  '..hffffffh..',
+  '..ffffffff..',
+  '..fkffffkf..',
+  '..ffffffff..',
+  '..fffmmfff..',
+  '...ffffff...',
+  '...ffffff...',
+  '..tttttttt..',
+  '.fttttttttf.',
+  '.dttttttttd.',
+  '..tttttttt..',
+  '..TTTTTTTT..',
+  '..pp....pp..',
+  '..pp....pp..',
+  '.bbb....bbb.',
+];
+const JONA_PAL = {
+  g: '#2f8a5a', h: '#241a12', f: '#cf9a68', k: '#140a05', m: '#8a4a38',
+  t: '#3fae7a', T: '#2f8a5a', d: '#b07a4a', p: '#33405a', b: '#2a2a2a',
+};
+// Micaele (menina): maria-chiquinha e vestido rosa
+const MICA_MAP = [
+  '...hhhh.....',
+  '.hhhhhhhhhh.',
+  'hhhhhhhhhhhh',
+  'h.hffffffh.h',
+  '..ffffffff..',
+  '..fkffffkf..',
+  '..ffffffff..',
+  '..fffmmfff..',
+  '...ffffff...',
+  '...ffffff...',
+  '..rrWWWWrr..',
+  '.frrrrrrrrf.',
+  '.drrrrrrrrd.',
+  '..rrrrrrrr..',
+  '..rRRRRRRr..',
+  '..ff....ff..',
+  '..df....fd..',
+  '.bbb....bbb.',
+];
+const MICA_PAL = {
+  h: '#3a2418', f: '#e2a878', k: '#140a05', m: '#9a4e3a',
+  r: '#e87ab0', R: '#c95e96', W: '#f7e4ee', d: '#c08a64', b: '#7a3f22',
+};
+// Titio Jeff (adulto): mesmo corpo do Vovô, boné azul, barba curta, camisa laranja
+const JEFF_PAL = {
+  p: '#1f6f9e', P: '#155680', f: '#cf9a68', d: '#a86f44', k: '#140a05',
+  w: '#3a2a1a', W: '#4a3526', c: '#f2a83a', C: '#d98a20', n: '#caa15a', b: '#5a3a22',
+};
+// Vovó (adulta): cabelo grisalho, sem barba, blusa lilás e saia roxa
+const VOVA_PAL = {
+  p: '#dcd6cf', P: '#c2bbb2', f: '#e6b48c', d: '#c89068', k: '#140a05',
+  w: '#e6b48c', W: '#e6b48c', c: '#c79bd0', C: '#a87ab8', n: '#9a6aa8', b: '#6a4a8a',
+};
+function drawJonatha(ctx, x, y, s = U) { drawMap(ctx, JONA_MAP, JONA_PAL, x, y, s); }
+function drawMicaele(ctx, x, y, s = U) { drawMap(ctx, MICA_MAP, MICA_PAL, x, y, s); }
+function drawJeff(ctx, x, y, s = U) { drawMap(ctx, VOVO_MAP, JEFF_PAL, x, y, s); }
+function drawVova(ctx, x, y, s = U) { drawMap(ctx, VOVO_MAP, VOVA_PAL, x, y, s); }
 function drawCrab(ctx, x, y, s = U) { drawMap(ctx, CRAB_MAP, CRAB_PAL, x, y, s); }
 function drawShark(ctx, x, y, s = U, flip = false) {
   if (flip) {
@@ -301,6 +429,66 @@ function rainFx(ctx, t, c = '#9fc4e0') {
     const y = ((i * 131 + t * 420) % 700) - 30;
     PR(ctx, x, y, 2, 12, c);
   }
+}
+
+// ---------- pavimentação das ruas do Recife ----------
+// paralelepípedo (pedra portuguesa de tráfego): pedras em fiada deslocada
+function cobble(ctx, x, y, w, h, base = '#8c857a', dark = '#6f685f', light = '#9c958a') {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  PR(ctx, x, y, w, h, base);
+  const u = 8;
+  for (let r = 0; r * u < h + u; r++) {
+    const off = (r % 2) ? 4 : 0;
+    for (let c = -1; c * u < w + u; c++) {
+      const px = x + c * u + off, py = y + r * u;
+      const v = (r * 7 + c * 13) % 3;
+      PR(ctx, px + 1, py + 1, u - 2, u - 2, v === 0 ? dark : (v === 1 ? light : base));
+    }
+  }
+  ctx.restore();
+}
+// calçada portuguesa: mosaico de ondas preto-e-creme (Boa Viagem / Marco Zero)
+function calcadaPortuguesa(ctx, x, y, w, h, cell = 4) {
+  for (let yy = 0; yy < h; yy += cell) {
+    for (let xx = 0; xx < w; xx += cell) {
+      const phase = yy + Math.sin((x + xx) * 0.1) * 12; // onda do mar
+      const black = ((phase / 18) | 0) % 2 === 0;
+      PR(ctx, x + xx, y + yy, cell, cell, black ? '#23252b' : '#ece4d0');
+    }
+  }
+}
+// calçada (passeio): ondas portuguesas nos cartões-postais ou ladrilho simples
+function sidewalkStrip(ctx, x, y, w, h, wave) {
+  if (w <= 0 || h <= 0) return;
+  if (wave) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    calcadaPortuguesa(ctx, x, y, w, h);
+    ctx.restore();
+  } else {
+    PR(ctx, x, y, w, h, '#cdbf9c');
+    if (w > h) for (let i = 0; i * 14 < w; i++) PR(ctx, x + i * 14, y, 1, h, '#b8aa86');
+    else for (let i = 0; i * 14 < h; i++) PR(ctx, x, y + i * 14, w, 1, '#b8aa86');
+  }
+}
+// faixa de pedestre (zebra)
+function crosswalk(ctx, x, y, w, h, horizontal) {
+  if (horizontal) for (let i = 0; i * 9 < w; i++) PR(ctx, x + i * 9, y, 5, h, '#e6e0d2');
+  else for (let i = 0; i * 9 < h; i++) PR(ctx, x, y + i * 9, w, 5, '#e6e0d2');
+}
+// poste de luz
+function lampPost(ctx, x, yBase) {
+  PR(ctx, x - 9, yBase, 18, 4, 'rgba(0,0,0,0.18)');
+  PR(ctx, x - 1, yBase - 30, 3, 30, '#37414a');
+  PR(ctx, x - 5, yBase - 34, 12, 6, '#2a323a');
+  PR(ctx, x - 4, yBase - 33, 10, 4, '#ffe9a8');
+  PR(ctx, x - 6, yBase - 30, 14, 2, 'rgba(255,233,168,0.35)');
+}
+// bueiro
+function manhole(ctx, x, y) {
+  PR(ctx, x - 5, y - 4, 10, 8, '#4a4a46');
+  PR(ctx, x - 4, y - 3, 8, 6, '#5c5c56');
+  PR(ctx, x - 3, y, 6, 1, '#42423e');
 }
 
 function bandeirinhas(ctx, y, t) {

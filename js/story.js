@@ -192,3 +192,67 @@ const PUZZLE_HINTS = {
   9: 'Arraste os cursores e toque em TOCAR. As setas mostram se sobe ou desce!',
   10: 'Toque nas setas para montar a rota e depois em ZARPAR. Desvie das pedras!',
 };
+
+// ============================================================
+// Encontros com a família (guias do mundo aberto) + final no céu
+// who: maju | vovo | jona | mica | jeff | vova | nar
+// ============================================================
+STORY.meet = {
+  // Tutorial: Jonatha e Micaele apresentam o mundo (Recife Antigo)
+  start: [
+    { who: 'jona', text: 'Ô Maju! Bem-vinda ao Recife Antigo! Eu sou o Jonatha.' },
+    { who: 'mica', text: 'E eu sou a Micaele! A gente vai te ensinar a andar por aqui.' },
+    { who: 'jona', text: 'Usa o direcional no canto da tela pra caminhar pela cidade. Vai, experimenta!' },
+    { who: 'maju', text: 'Assim? Ô, que massa! Dá pra ir pra qualquer canto!' },
+    { who: 'mica', text: 'As contas do colar do teu vovô se espalharam — são as plaquinhas com "?".' },
+    { who: 'jona', text: 'Chega pertinho de uma e toca em ENTRAR pra resolver o desafio dela.' },
+    { who: 'mica', text: 'Cada bairro tem nove contas. Junte as nove e a ponte pro próximo bairro se abre!' },
+    { who: 'jona', text: 'E olha: pelo caminho você vai encontrar gente da família pra te ajudar.' },
+    { who: 'mica', text: 'Na praia tem teu titio. Lá no frevo, tua vovó. E o vovô te espera no cais.' },
+    { who: 'maju', text: 'Então bora! Antes do pôr do sol esse colar tá inteirinho de novo!' },
+    { who: 'nar', text: 'Jonatha e Micaele acenam. O Recife inteiro se abre diante de Maju.' },
+  ],
+  jonaAgain: [
+    { who: 'jona', text: 'Tá indo bem, Maju! Completa as nove contas do bairro pra abrir a ponte.' },
+    { who: 'maju', text: 'Pode deixar, Jonatha!' },
+  ],
+  micaAgain: [
+    { who: 'mica', text: 'Ó o minimapa lá em cima: as contas douradas são as que você já pegou!' },
+    { who: 'maju', text: 'Boa dica, Micaele!' },
+  ],
+  // Titio Jeff — praia de Boa Viagem
+  jeff: [
+    { who: 'jeff', text: 'Maju?! Minha sobrinha favorita! Sou eu, teu titio Jeff!' },
+    { who: 'maju', text: 'Titio Jeff! Não sabia que você tava aqui em Boa Viagem!' },
+    { who: 'jeff', text: 'Moro pertinho da praia. Vim te dar uma força com as contas do mar.' },
+    { who: 'jeff', text: 'Repara nos arrecifes: o segredo daqui é ter paciência com a maré.' },
+    { who: 'maju', text: 'Valeu, titio! Com você por perto fica bem mais fácil!' },
+  ],
+  jeffAgain: [
+    { who: 'jeff', text: 'Bora, sobrinha! O mar do Recife é teu parceiro. Vai com calma nas contas.' },
+    { who: 'maju', text: 'Tô indo, titio! Já já volto pra te mostrar o colar.' },
+  ],
+  // Vovó — Pátio do Frevo (Rua da Moeda)
+  vova: [
+    { who: 'vova', text: 'Maju, minha netinha! Chegou bem na hora do frevo!' },
+    { who: 'maju', text: 'Vovó! Você aqui no pátio do frevo?' },
+    { who: 'vova', text: 'Cresci dançando frevo nesta rua, viu? A sombrinha é quase parte de mim.' },
+    { who: 'vova', text: 'Pra pegar as contas daqui, sente o passo: o frevo é ritmo e alegria.' },
+    { who: 'maju', text: 'Vou rodar a sombrinha que nem você me ensinou, vovó!' },
+  ],
+  vovaAgain: [
+    { who: 'vova', text: 'Dança, minha neta! Quem tem frevo no pé não perde o compasso da vida.' },
+    { who: 'maju', text: 'Tô no ritmo, vovó! Já volto.' },
+  ],
+};
+
+// Final: o Vovô leva a Maju pelo céu do Recife
+STORY.skyEnding = [
+  { who: 'vovo', text: 'Oitenta e uma contas, Maju. O colar voltou a brilhar inteiro.' },
+  { who: 'maju', text: 'Conheci o Recife todinho, vovô. E reencontrei a nossa família pelo caminho.' },
+  { who: 'vovo', text: 'Esse é o maior tesouro, minha neta: a cidade e a gente que faz ela.' },
+  { who: 'vovo', text: 'Agora segura firme na minha mão. Vou te mostrar o Recife lá de cima.' },
+  { who: 'maju', text: 'Lá de cima, vovô?' },
+  { who: 'vovo', text: 'Do céu, Maju. De onde a maré, o mangue e o frevo viram um só brilho.' },
+  { who: 'nar', text: 'A jangada se solta da água e sobe devagar, levando os dois pelo céu do Recife.' },
+];
