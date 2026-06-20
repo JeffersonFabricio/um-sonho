@@ -1,4 +1,4 @@
-# Marés do Recife 🌊⛵
+# Um sonho 🌊⛵
 
 Jogo mobile em **pixel art**, estilo **mundo livre** (open world), todo ambientado no
 **Recife, Pernambuco**. Maju percorre ruas de **paralelepípedo** e **calçada portuguesa** (as
