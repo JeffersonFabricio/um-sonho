@@ -117,7 +117,7 @@
 
   // ---------- estado ----------
   const S = {
-    mode: 'title',   // title | dialogue | world | puzzle | bead | ceu
+    mode: 'title',   // title | dialogue | world | world3d | puzzle | bead | ceu
     save: load(),
     level: 1,
     cur: null,
@@ -591,7 +591,8 @@
   // ---------- joystick + interação ----------
   const JOY = { active: false, baseX: 70, baseY: H - 78, R: 46, kx: 0, ky: 0 };
   const ENTER = { x: W - 152, y: H - 66, w: 142, h: 48 };
-  const MUTE = { x: W - 42, y: 12, w: 30, h: 28 };
+  const MUTE  = { x: W - 42, y: 12, w: 30, h: 28 };
+  const BTN3D = { x: W - 152, y: 8, w: 50, h: 44 };
   const keys = {};
 
   function updateJoy(x, y) {
@@ -631,6 +632,7 @@
 
   function worldPointerDown(x, y) {
     if (inBox(x, y, MUTE.x, MUTE.y, MUTE.w, MUTE.h)) { AudioFX.toggleMute(); AudioFX.tap(); return; }
+    if (inBox(x, y, BTN3D.x, BTN3D.y, BTN3D.w, BTN3D.h)) { S.mode = 'world3d'; World3D.reset(); AudioFX.tap(); return; }
     if ((S.near || S.nearNpc) && inBox(x, y, ENTER.x, ENTER.y, ENTER.w, ENTER.h)) { enterNear(); return; }
     if (x < 210 && y > H - 210) { JOY.active = true; updateJoy(x, y); }
   }
@@ -752,7 +754,10 @@
   function drawWorldHud(t) {
     panel(ctx, 10, 8, W - 20, 44, 'rgba(8,14,26,0.9)', '#f2c038');
     pTxt(ctx, 'RECIFE LIVRE', 18, 30, 14, '#f2c038', 'left');
-    pTxt(ctx, `♦ ${doneCount()}/81`, W / 2 + 30, 30, 14, '#bfe6f2');
+    pTxt(ctx, `♦ ${doneCount()}/81`, W / 2 + 14, 30, 14, '#bfe6f2');
+    // Botão mundo 3D
+    PR(ctx, BTN3D.x, BTN3D.y, BTN3D.w, BTN3D.h, '#1a2f4a');
+    pTxt(ctx, '3D', BTN3D.x + BTN3D.w / 2, BTN3D.y + BTN3D.h / 2, 13, '#f2c038');
     PR(ctx, MUTE.x, MUTE.y, MUTE.w, MUTE.h, '#1a2a3f');
     pTxt(ctx, AudioFX.muted ? '♪✕' : '♪', MUTE.x + MUTE.w / 2, MUTE.y + 15, 13, AudioFX.muted ? '#5a6b7a' : '#bfe6f2');
     drawMinimap();
@@ -880,6 +885,9 @@
         if (inBox(x, y, 10, 8, 60, 40)) { enterWorld(); S.puzzle = null; AudioFX.tap(); return; }
         if (S.puzzle && !S.puzzle.solved) S.puzzle.tap(x, y);
         break;
+      case 'world3d':
+        if (inBox(x, y, 10, 10, 96, 34)) { S.mode = 'world'; World3D.reset(); AudioFX.tap(); }
+        break;
       case 'bead': if (S.winT > 0.8) { AudioFX.tap(); afterBead(); } break;
       case 'ceu': if (S.winT > 6) { enterWorld(); AudioFX.tap(); } break;
     }
@@ -916,6 +924,9 @@
       case 'world':
         updateWorld(dt);
         drawWorld(t);
+        break;
+      case 'world3d':
+        World3D.tick(ctx, W, H, t);
         break;
       case 'puzzle':
         drawScene(S.cur.scene, ctx, t);
