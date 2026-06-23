@@ -355,28 +355,65 @@ globalThis.World3D = (() => {
   };
 
   // ---------- portal de bairro ----------
-  function drawSpot(ctx, t, spot, unlocked) {
+  function spotLabel(ctx, x, y, text, bg, fg) {
+    ctx.font = 'bold 7px "Courier New", monospace';
+    const lw = ctx.measureText(text).width + 8;
+    ctx.fillStyle = bg;
+    ctx.fillRect(x - lw / 2, y - 8, lw, 10);
+    ctx.fillStyle = fg;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(text, x, y);
+  }
+
+  function drawSpot(ctx, t, spot, unlocked, doneCnt, isNext) {
     const { x, y } = iso(spot.col, spot.row);
+    const cy = y + TH / 2;
+
     if (!unlocked) {
-      ctx.save(); ctx.globalAlpha = 0.4;
-      ctx.fillStyle = '#304050';
-      ctx.beginPath(); ctx.arc(x, y + TH / 2 - 5, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
+      if (isNext) {
+        ctx.save(); ctx.globalAlpha = 0.75;
+        ctx.fillStyle = '#4a6070';
+        ctx.beginPath(); ctx.arc(x, cy - 9, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#8aacbe';
+        ctx.fillRect(x - 3, cy - 16, 6, 8);
+        ctx.fillStyle = '#2a3840';
+        ctx.fillRect(x - 5, cy - 10, 10, 8);
+        ctx.restore();
+        ctx.save(); ctx.globalAlpha = 0.7;
+        spotLabel(ctx, x, cy - 20, spot.name, 'rgba(8,14,26,0.85)', '#7a9cb0');
+        ctx.restore();
+      } else {
+        ctx.save(); ctx.globalAlpha = 0.22;
+        ctx.fillStyle = '#304050';
+        ctx.beginPath(); ctx.arc(x, cy - 4, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
       return;
     }
+
+    const allDone = doneCnt >= 9;
     const pulse = Math.sin(t * 3 + spot.d) * 0.3 + 0.7;
-    // aura
+    const rise = Math.sin(t * 2.5 + spot.d * 1.1) * 3;
+
     ctx.save(); ctx.globalAlpha = 0.28 * pulse;
     ctx.fillStyle = spot.color;
-    ctx.beginPath(); ctx.arc(x, y + TH / 2 - 5, 13, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, cy - 5, 15, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
-    // núcleo flutuante
-    const rise = Math.sin(t * 2.5 + spot.d * 1.1) * 3;
-    ctx.fillStyle = spot.color;
-    ctx.beginPath(); ctx.arc(x, y + TH / 2 - 10 + rise, 5, 0, Math.PI * 2); ctx.fill();
-    // haste
+
+    ctx.fillStyle = allDone ? '#88ee88' : spot.color;
+    ctx.beginPath(); ctx.arc(x, cy - 11 + rise, 5, 0, Math.PI * 2); ctx.fill();
+    if (allDone) {
+      ctx.save(); ctx.strokeStyle = '#44cc44'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, cy - 11 + rise, 8, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.strokeStyle = spot.color; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(x, y + TH / 2 - 5 + rise); ctx.lineTo(x, y + TH / 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, cy - 6 + rise); ctx.lineTo(x, cy); ctx.stroke();
+
+    spotLabel(ctx, x, cy - 26 + rise, spot.name, 'rgba(8,14,26,0.88)', spot.color);
+    const prog = allDone ? 'COMPLETO' : `${doneCnt}/9`;
+    spotLabel(ctx, x, cy - 37 + rise, prog, 'rgba(8,14,26,0.88)', allDone ? '#88ee88' : '#bfe6f2');
   }
 
   // ---------- NPC no mundo (sprites reais de sprites.js) ----------
@@ -410,7 +447,7 @@ globalThis.World3D = (() => {
   }
 
   // ---------- render principal ----------
-  function draw(ctx, W, H, t, districtUnlockedFn) {
+  function draw(ctx, W, H, t, districtUnlockedFn, progressFn) {
     drawSky(ctx, W, H);
     drawSun(ctx);
     drawClouds(ctx, t);
@@ -428,7 +465,10 @@ globalThis.World3D = (() => {
       }
     }
     for (const sp of DISTRICT_SPOTS) {
-      queue.push({ kind: 'spot', sp, depth: sp.col + sp.row + 0.4 });
+      const unlocked = districtUnlockedFn(sp.d);
+      const isNext = !unlocked && (sp.d === 0 || districtUnlockedFn(sp.d - 1));
+      const doneCnt = progressFn ? progressFn(sp.d) : 0;
+      queue.push({ kind: 'spot', sp, depth: sp.col + sp.row + 0.4, unlocked, doneCnt, isNext });
     }
     for (const npc of WORLD_NPCS) {
       queue.push({ kind: 'npc', npc, depth: npc.col + npc.row + 0.5 });
@@ -467,7 +507,7 @@ globalThis.World3D = (() => {
           }
         }
       } else if (item.kind === 'spot') {
-        drawSpot(ctx, t, item.sp, districtUnlockedFn(item.sp.d));
+        drawSpot(ctx, t, item.sp, item.unlocked, item.doneCnt, item.isNext);
       } else if (item.kind === 'npc') {
         if (districtUnlockedFn(item.npc.d)) drawNpc(ctx, t, item.npc);
       } else if (item.kind === 'player') {
