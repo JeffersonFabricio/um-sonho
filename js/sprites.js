@@ -65,8 +65,8 @@ const MAJU_MAP = [
   '.bbb....bbb.',
 ];
 const MAJU_PAL = {
-  h: '#2a1a12', H: '#3d2719', f: '#d2925f', d: '#b07546', k: '#140a05',
-  w: '#ecb98c', m: '#9a4e3a', y: '#f2c038', Y: '#d49a2a', b: '#7a3f22',
+  h: '#2a1a12', H: '#3d2719', f: '#e8c09a', d: '#c8986e', k: '#140a05',
+  w: '#f5d8b8', m: '#9a4e3a', y: '#f2c038', Y: '#d49a2a', b: '#7a3f22',
   e: '#e8556a', o: '#f7d23a', W: '#f5efe0',
 };
 
@@ -124,8 +124,8 @@ const VOVO_FACE = [
   '...WwwwwW...',
 ];
 const FACE_PAL = {
-  h: '#2a1a12', H: '#3d2719', f: '#d2925f', d: '#b07546', k: '#140a05',
-  w: '#ecb98c', m: '#9a4e3a', p: '#d9b25c', P: '#bf983f', W: '#c9c4b8',
+  h: '#2a1a12', H: '#3d2719', f: '#e8c09a', d: '#c8986e', k: '#140a05',
+  w: '#f5d8b8', m: '#9a4e3a', p: '#d9b25c', P: '#bf983f', W: '#c9c4b8',
   e: '#e8556a', o: '#f7d23a',
 };
 const VOVO_FACE_PAL = { ...FACE_PAL, f: '#8a5a3a', d: '#6e4730', w: '#ece8de', W: '#c9c4b8' };
@@ -224,8 +224,8 @@ const JONA_MAP = [
   '.bbb....bbb.',
 ];
 const JONA_PAL = {
-  g: '#2f8a5a', h: '#241a12', f: '#cf9a68', k: '#140a05', m: '#8a4a38',
-  t: '#3fae7a', T: '#2f8a5a', d: '#b07a4a', p: '#33405a', b: '#2a2a2a',
+  g: '#2f8a5a', h: '#241a12', f: '#e8c09a', k: '#140a05', m: '#8a4a38',
+  t: '#cc2222', T: '#9a1010', d: '#c8986e', p: '#33405a', b: '#2a2a2a',
 };
 // Micaele (menina): maria-chiquinha e vestido rosa
 const MICA_MAP = [
@@ -249,13 +249,13 @@ const MICA_MAP = [
   '.bbb....bbb.',
 ];
 const MICA_PAL = {
-  h: '#3a2418', f: '#e2a878', k: '#140a05', m: '#9a4e3a',
-  r: '#e87ab0', R: '#c95e96', W: '#f7e4ee', d: '#c08a64', b: '#7a3f22',
+  h: '#3a2418', f: '#e8c09a', k: '#140a05', m: '#9a4e3a',
+  r: '#e87ab0', R: '#c95e96', W: '#f7e4ee', d: '#c8986e', b: '#7a3f22',
 };
-// Titio Jeff (adulto): mesmo corpo do Vovô, boné azul, barba curta, camisa laranja
+// Titio Jeff (adulto): mesmo corpo do Vovô, boné azul, barba curta, camisa roxa
 const JEFF_PAL = {
   p: '#1f6f9e', P: '#155680', f: '#cf9a68', d: '#a86f44', k: '#140a05',
-  w: '#3a2a1a', W: '#4a3526', c: '#f2a83a', C: '#d98a20', n: '#caa15a', b: '#5a3a22',
+  w: '#3a2a1a', W: '#4a3526', c: '#8a2ac8', C: '#6a1e9e', n: '#caa15a', b: '#5a3a22',
 };
 // Vovó (adulta): cabelo grisalho, sem barba, blusa lilás e saia roxa
 const VOVA_PAL = {

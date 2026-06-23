@@ -60,18 +60,27 @@
   function gridRows(d) { const c = districtCenter(d); return [c.y - ROWDY, c.y, c.y + ROWDY]; }
 
   // contas-spot: cada fase fica num cruzamento (pracinha) da malha de ruas
+  // posições espalhadas no grid 3×3 para 3 ou 4 fases por bairro
+  const SPOT_GRID = {
+    3: [[1,0],[0,2],[2,2]],
+    4: [[0,0],[2,0],[0,2],[2,1]],
+  };
   const SPOTS = [];
   function buildSpots() {
-    for (let g = 1; g <= 81; g++) {
-      const d = Math.floor((g - 1) / 9), k = (g - 1) % 9;
-      const sc = k % 3, sr = Math.floor(k / 3);
+    for (let d = 0; d < 9; d++) {
+      const n = DISTRICT_SIZES[d];
+      const layout = SPOT_GRID[n] || SPOT_GRID[3];
       const cols = gridCols(d), rows = gridRows(d);
-      const L = getLevel(g);
-      SPOTS.push({
-        g, d, k, x: cols[sc], y: rows[sr],
-        title: L.title, color: CHAPTERS[d].color,
-        anchor: !!CHAPTERS[d].fases[k].anchor,
-      });
+      for (let k = 0; k < n; k++) {
+        const g = DISTRICT_STARTS[d] + k;
+        const [sc, sr] = layout[k];
+        const L = getLevel(g);
+        SPOTS.push({
+          g, d, k, x: cols[sc], y: rows[sr],
+          title: L.title, color: CHAPTERS[d].color,
+          anchor: !!CHAPTERS[d].fases[k].anchor,
+        });
+      }
     }
   }
 
@@ -113,17 +122,43 @@
       if (s.v === 3) {
         return { v: 3, done: s.done || {}, opened: !!s.opened, fin: !!s.fin, maju: s.maju || null, met: s.met || {} };
       }
-      const prog = s.v === 2 ? Math.min(81, s.prog || 0) : 0;
+      const prog = s.v === 2 ? Math.min(TOTAL_PHASES, s.prog || 0) : 0;
       const done = {};
-      for (let i = 1; i <= prog; i++) done[i] = true;
-      return { v: 3, done, opened: !!s.opened, fin: prog >= 81, maju: null, met: {} };
+      for (let i = 1; i <= Math.min(prog, TOTAL_PHASES); i++) done[i] = true;
+      return { v: 3, done, opened: !!s.opened, fin: prog >= TOTAL_PHASES, maju: null, met: {} };
     } catch { return { v: 3, done: {}, opened: false, fin: false, maju: null, met: {} }; }
   }
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S.save)); } catch {} }
   function isDone(g) { return !!S.save.done[g]; }
   function doneCount() { return Object.keys(S.save.done).length; }
-  function districtDone(d) { for (let k = 0; k < 9; k++) if (!isDone(d * 9 + k + 1)) return false; return true; }
+  function districtDone(d) {
+    for (let k = 0; k < DISTRICT_SIZES[d]; k++) if (!isDone(DISTRICT_STARTS[d] + k)) return false;
+    return true;
+  }
   function districtUnlocked(d) { return d === 0 || districtDone(d - 1); }
+
+  // próxima conta não feita num distrito (sequencial)
+  function nextSpotInDistrict(d) {
+    for (let k = 0; k < DISTRICT_SIZES[d]; k++) {
+      const g = DISTRICT_STARTS[d] + k;
+      if (!isDone(g)) return SPOTS.find(s => s.g === g) || null;
+    }
+    return null;
+  }
+  // spot "ativo" = é o próximo a ser feito no seu distrito
+  function spotIsActive(sp) {
+    const ns = nextSpotInDistrict(sp.d);
+    return !!(ns && ns.g === sp.g);
+  }
+  // próxima conta não feita em qualquer distrito desbloqueado
+  function nextUndoneAnywhere() {
+    for (let d = 0; d < 9; d++) {
+      if (!districtUnlocked(d)) continue;
+      const ns = nextSpotInDistrict(d);
+      if (ns) return ns;
+    }
+    return null;
+  }
 
   // ---------- estado ----------
   const S = {
@@ -144,6 +179,8 @@
     nearNpc: null,    // personagem mais próximo
     helpT: 7,
     toast: null,      // { text, t }
+    beacon: { active: false, t: 0 },     // seta guia para próxima conta
+    camPan: { dx: 0, dy: 0, t: 0 },     // pan de câmera pós-fase
   };
   const TRANS = 0.34;
 
@@ -286,13 +323,30 @@
         S.toast = { text: `Ponte liberada → ${d + 2}. ${ZONE[d + 1].name}`, t: 4 };
         AudioFX.win();
       }
-      if (doneCount() >= 81 && !S.save.fin) {
+      if (doneCount() >= TOTAL_PHASES && !S.save.fin) {
         S.save.fin = true; save();
         startEnding();
       } else {
         enterWorld();
+        triggerBeaconAndPan(12);
       }
     });
+  }
+
+  // ativa seta-guia + pan de câmera em direção à próxima conta
+  function triggerBeaconAndPan(beaconDuration) {
+    S.beacon.active = true;
+    S.beacon.t = beaconDuration;
+    const nxt = nextUndoneAnywhere();
+    if (nxt) {
+      const rawDx = nxt.x - S.maju.x;
+      const rawDy = nxt.y - S.maju.y;
+      const len = Math.hypot(rawDx, rawDy) || 1;
+      const scale = Math.min(160 / len, 1);
+      S.camPan.dx = rawDx * scale;
+      S.camPan.dy = rawDy * scale;
+      S.camPan.t = 1.8;
+    }
   }
 
   // ---------- título ----------
@@ -309,8 +363,8 @@
     pTxt(ctx, 'Andando pela cidade', W / 2, 230, 18, '#f2904a', 'center', false);
     pTxt(ctx, '✦  mundo livre  ·  pixel art  ✦', W / 2, 256, 11, '#bfe6f2', 'center', false);
     if (Math.sin(t * 3) > -0.3) pTxt(ctx, '— toque para começar —', W / 2, 556, 15, '#fff8d0');
-    pTxt(ctx, 'explore o Recife · 81 contas · DDD 81', W / 2, 588, 11, '#d8b8a0', 'center', false);
-    if (doneCount() > 0) pTxt(ctx, `progresso salvo: ${doneCount()}/81 contas`, W / 2, 610, 11, '#9fd8f0', 'center', false);
+    pTxt(ctx, `explore o Recife · ${TOTAL_PHASES} contas`, W / 2, 588, 11, '#d8b8a0', 'center', false);
+    if (doneCount() > 0) pTxt(ctx, `progresso salvo: ${doneCount()}/${TOTAL_PHASES} contas`, W / 2, 610, 11, '#9fd8f0', 'center', false);
   }
 
   // ---------- conta conquistada ----------
@@ -331,7 +385,7 @@
     drawBead(ctx, W / 2, 260, pulse, L.color, true);
     pTxt(ctx, '✦ conta recuperada! ✦', W / 2, 350, 15, '#fff8d0');
     pTxt(ctx, `${L.k}ª conta do ${L.cord}`, W / 2, 380, 18, L.color);
-    pTxt(ctx, `${doneCount() + (isDone(L.g) ? 0 : 1)} de 81`, W / 2, 410, 13, '#9fb4d0');
+    pTxt(ctx, `${doneCount() + (isDone(L.g) ? 0 : 1)} de ${TOTAL_PHASES}`, W / 2, 410, 13, '#9fb4d0');
     if (t > 0.8 && Math.sin(t * 4) > 0) pTxt(ctx, '— toque —', W / 2, 470, 13, '#f2c038');
   }
 
@@ -341,9 +395,55 @@
   }
   function drawCeu(t) {
     skyGrad(ctx, ['#f2c038', '#f2904a', '#d95a4a', '#8a3a5a', '#3a2a55', '#161232', '#0a0a1e'], 0, H);
-    stars(ctx, Math.min(90, 18 + Math.floor(t * 12)), H, S.t);
+    stars(ctx, Math.min(90, 18 + Math.floor(t * 10)), H, S.t);
     moon(ctx, 300, 92, 16);
-    const jy = H * 0.82 - Math.min(1, t / 6) * H * 0.52; // jangada sobe devagar
+
+    // ---- Recife lá embaixo — some enquanto sobem ----
+    const cityAlpha = Math.max(0, 1 - t / 3.5);
+    if (cityAlpha > 0.02) {
+      ctx.save();
+      ctx.globalAlpha = cityAlpha;
+      PR(ctx, 0, H - 55, W, 55, '#1a6593');
+      casaFar(ctx, H - 55, 2);
+      casa(ctx, H - 28, 0);
+      ctx.restore();
+    }
+
+    // ---- Nuvens passando no percurso ----
+    const cloudT = Math.min(1, Math.max(0, (t - 1.5) / 2)) * Math.max(0, 1 - (t - 6) / 1.5);
+    if (cloudT > 0.01) {
+      ctx.save();
+      ctx.globalAlpha = cloudT * 0.65;
+      cloudLayer(ctx, S.t * 28, [
+        { x: 30,  y: Math.round(H * 0.45), w: 100, sp: 18 },
+        { x: 190, y: Math.round(H * 0.36), w:  80, sp: 24 },
+        { x: 265, y: Math.round(H * 0.52), w:  90, sp: 14 },
+      ]);
+      ctx.restore();
+    }
+
+    // ---- Pássaros voando junto no início ----
+    if (t > 0.5 && t < 4.5) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (t - 0.5) * 1.2) * Math.max(0, 1 - (t - 3.5) * 1.5);
+      birds(ctx, S.t, 5, Math.round(H * 0.54), 14);
+      ctx.restore();
+    }
+
+    // ---- Jangada subindo ----
+    const jy = H * 0.82 - Math.min(1, t / 6) * H * 0.52;
+
+    // rastro dourado abaixo da jangada
+    if (t > 0.5) {
+      ctx.save();
+      const trail = Math.min(0.45, (t - 0.5) * 0.09);
+      for (let i = 0; i < 7; i++) {
+        ctx.globalAlpha = trail * (1 - i / 7);
+        PR(ctx, 161 + i * 2, jy + 4 + i * 8, 32 - i * 3, 3, '#f2c038');
+      }
+      ctx.restore();
+    }
+
     // contas em órbita ao redor da jangada
     for (let i = 0; i < 14; i++) {
       const a = S.t * 1.2 + (i / 14) * Math.PI * 2;
@@ -353,23 +453,49 @@
     jangadaSil(ctx, 180, jy, 1.2, '#241433');
     drawVovo(ctx, 180 - 34, jy - 66, 3);
     drawMaju(ctx, 180 + 4, jy - 58, 3);
-    PR(ctx, 165, jy - 30, 6, 6, 'rgba(255,248,208,0.8)'); // mãos dadas (brilho)
-    if (t > 2) pTxt(ctx, 'O colar brilhou inteiro no peito do Recife.', W / 2, 130, 12, '#fff8d0');
-    if (t > 4) pTxt(ctx, 'E o Vovô levou a Maju', W / 2, H - 152, 16, '#fff8d0');
-    if (t > 4.6) pTxt(ctx, 'pro lugar onde o amor não tem fim.', W / 2, H - 128, 16, '#fff8d0');
-    if (t > 5.8) {
-      ctx.save(); ctx.globalAlpha = Math.min(1, (t - 5.8) * 0.7);
+    PR(ctx, 165, jy - 30, 6, 6, 'rgba(255,248,208,0.8)'); // mãos dadas
+
+    // ---- Família aparece no céu como espíritos luminosos ----
+    const SOULS = [
+      { draw: drawJonatha, name: 'Painho',       sx: 48,  sy: Math.round(H * 0.34), t0: 3.0 },
+      { draw: drawMicaele, name: 'Mainha',        sx: 285, sy: Math.round(H * 0.31), t0: 3.6 },
+      { draw: drawJeff,    name: 'Titio Jeff',    sx: 40,  sy: Math.round(H * 0.22), t0: 4.2 },
+      { draw: drawPrimos,  name: 'Ravi & Nico',   sx: 272, sy: Math.round(H * 0.20), t0: 4.7 },
+      { draw: drawBruno,   name: 'Titio Bruno',   sx: 116, sy: Math.round(H * 0.14), t0: 5.2 },
+      { draw: drawRenato,  name: 'Titio Renato',  sx: 232, sy: Math.round(H * 0.11), t0: 5.7 },
+      { draw: drawVova,    name: 'Vovó',           sx: 54,  sy: Math.round(H * 0.08), t0: 6.1 },
+      { draw: drawVovoMae, name: 'Vovó Maria',    sx: 286, sy: Math.round(H * 0.06), t0: 6.6 },
+    ];
+    for (const soul of SOULS) {
+      if (t < soul.t0) continue;
+      const ft = Math.min(1, (t - soul.t0) * 2);
+      ctx.save();
+      ctx.globalAlpha = ft * 0.28;
+      PR(ctx, soul.sx - 5, soul.sy - 5, 30, 30, '#fff8d0');
+      ctx.globalAlpha = ft;
+      soul.draw(ctx, soul.sx, soul.sy, 2);
+      ctx.globalAlpha = ft * 0.88;
+      pTxt(ctx, soul.name, soul.sx + 12, soul.sy + 22, 7, '#f0d878', 'center', false);
+      ctx.restore();
+    }
+
+    // ---- Textos narrativos ----
+    if (t > 2) pTxt(ctx, 'O colar brilhou inteiro no peito do Recife.', W / 2, 128, 12, '#fff8d0');
+    if (t > 7.4) pTxt(ctx, 'E o Vovô levou a Maju', W / 2, H - 152, 16, '#fff8d0');
+    if (t > 8.0) pTxt(ctx, 'pro lugar onde o amor não tem fim.', W / 2, H - 128, 16, '#fff8d0');
+    if (t > 8.8) {
+      ctx.save(); ctx.globalAlpha = Math.min(1, (t - 8.8) * 0.7);
       pTxt(ctx, 'Jonatha · Micaele · Jeff · Bruno', W / 2, H - 100, 10, '#f0d878', 'center', false);
       pTxt(ctx, 'Renato · Ravi · Nicolas · Vovó · Vovó Maria', W / 2, H - 84, 10, '#f0d878', 'center', false);
       ctx.restore();
     }
-    if (t > 7) {
+    if (t > 10) {
       pTxt(ctx, '✦ FIM ✦', W / 2, H - 58, 20, '#f2c038');
-      ctx.save(); ctx.globalAlpha = Math.min(1, (t - 7) * 0.5);
+      ctx.save(); ctx.globalAlpha = Math.min(1, (t - 10) * 0.5);
       pTxt(ctx, 'Para Maria Júlia', W / 2, H - 34, 12, '#f0d878', 'center', false);
       ctx.restore();
     }
-    if (t > 8 && Math.sin(t * 3) > 0) pTxt(ctx, '— toque para voltar ao Recife —', W / 2, H - 14, 11, '#bfe6f2');
+    if (t > 11 && Math.sin(t * 3) > 0) pTxt(ctx, '— toque para voltar ao Recife —', W / 2, H - 14, 11, '#bfe6f2');
   }
 
   // ============================================================
@@ -568,10 +694,29 @@
   // ---------- desenho de conta-spot e personagens no mundo ----------
   function drawSpot(sp, sx, sy, near, t) {
     const done = isDone(sp.g);
+    const active = !done && spotIsActive(sp);
+
+    // semente: conta ainda bloqueada no sequencial — pequena e apagada
+    if (!done && !active) {
+      ctx.save();
+      ctx.globalAlpha = 0.32 + 0.10 * Math.sin(t * 1.4 + sp.g);
+      drawBead(ctx, sx, sy - 6, 3, sp.color, false);
+      ctx.restore();
+      return;
+    }
+
     const bob = Math.sin(t * 2 + sp.g) * 1.6;
     PR(ctx, sx - 8, sy + 10, 16, 4, 'rgba(0,0,0,0.20)');
     PR(ctx, sx - 2, sy - 6, 4, 16, '#6e4a2c');
     const by = sy - 20 + bob;
+
+    // anel extra para o próximo spot a completar
+    if (active) {
+      ctx.save();
+      ctx.globalAlpha = 0.16 + 0.13 * Math.sin(t * 2.4);
+      drawBead(ctx, sx, by, 34, sp.color, true);
+      ctx.restore();
+    }
     if (near) {
       ctx.save();
       ctx.globalAlpha = 0.30 + 0.22 * Math.sin(t * 6);
@@ -635,13 +780,13 @@
     save();
   }
   function talkNpc(npc) {
-    if (npc.ending && doneCount() >= 81) { startEnding(); return; }
+    if (npc.ending && doneCount() >= TOTAL_PHASES) { startEnding(); return; }
     const first = !S.save.met[npc.key];
     S.save.met[npc.key] = true; save();
     let lines;
     if (npc.key === 'vovo') {
       lines = [
-        { who: 'vovo', text: `Já são ${doneCount()} de 81 contas, minha neta. Falta pouco pro colar voltar inteiro.` },
+        { who: 'vovo', text: `Já são ${doneCount()} de ${TOTAL_PHASES} contas, minha neta. Falta pouco pro colar voltar inteiro.` },
         { who: 'maju', text: 'Tô quase lá, vovô! Não vou deixar o sol se pôr antes.' },
       ];
     } else {
@@ -696,22 +841,42 @@
       if (dd < bnd) { bnd = dd; bn = n; }
     }
     S.nearNpc = (bn && bnd < 52) ? bn : null;
-    // conta mais próxima (em bairro liberado)
+    // conta mais próxima — apenas spots ativos (próximos) ou já feitos
     let bs = null, bsd = 1e9;
     for (const s of SPOTS) {
       if (!districtUnlocked(s.d)) continue;
+      if (!isDone(s.g) && !spotIsActive(s)) continue;
       const dd = Math.hypot(s.x - S.maju.x, s.y - S.maju.y);
       if (dd < bsd) { bsd = dd; bs = s; }
     }
     S.near = (!S.nearNpc && bs && bsd < 46) ? bs : null;
     if (S.helpT > 0) S.helpT -= dt;
     if (S.toast) { S.toast.t -= dt; if (S.toast.t <= 0) S.toast = null; }
+    if (S.camPan.t > 0) S.camPan.t = Math.max(0, S.camPan.t - dt);
+    if (S.beacon.active) {
+      const tgt = nextUndoneAnywhere();
+      if (!tgt) {
+        S.beacon.active = false;
+      } else {
+        if (Math.hypot(tgt.x - S.maju.x, tgt.y - S.maju.y) < 72) {
+          S.beacon.t = Math.min(S.beacon.t, 1.4); // começa a sumir quando perto
+        }
+        S.beacon.t -= dt;
+        if (S.beacon.t <= 0) S.beacon.active = false;
+      }
+    }
   }
 
   function drawWorld(t) {
     ensureWorldBg();
-    const camX = Math.max(0, Math.min(WORLD_W - W, S.maju.x - W / 2));
-    const camY = Math.max(0, Math.min(WORLD_H - H, S.maju.y - H / 2));
+    let panOffX = 0, panOffY = 0;
+    if (S.camPan.t > 0) {
+      const pct = Math.sin((S.camPan.t / 1.8) * Math.PI); // 0→1→0
+      panOffX = S.camPan.dx * pct;
+      panOffY = S.camPan.dy * pct;
+    }
+    const camX = Math.max(0, Math.min(WORLD_W - W, S.maju.x - W / 2 + panOffX));
+    const camY = Math.max(0, Math.min(WORLD_H - H, S.maju.y - H / 2 + panOffY));
     S.cam.x = camX; S.cam.y = camY;
     ctx.drawImage(_worldBg, camX, camY, W, H, 0, 0, W, H);
     drawRiverFoam(camX, camY, t);
@@ -782,7 +947,7 @@
   function drawWorldHud(t) {
     panel(ctx, 10, 8, W - 20, 44, 'rgba(8,14,26,0.9)', '#f2c038');
     pTxt(ctx, 'UM SONHO', 18, 30, 14, '#f2c038', 'left');
-    pTxt(ctx, `♦ ${doneCount()}/81`, W / 2 + 14, 30, 14, '#bfe6f2');
+    pTxt(ctx, `♦ ${doneCount()}/${TOTAL_PHASES}`, W / 2 + 14, 30, 14, '#bfe6f2');
     PR(ctx, MUTE.x, MUTE.y, MUTE.w, MUTE.h, '#1a2a3f');
     pTxt(ctx, AudioFX.muted ? '♪✕' : '♪', MUTE.x + MUTE.w / 2, MUTE.y + 15, 13, AudioFX.muted ? '#5a6b7a' : '#bfe6f2');
     // direcional
@@ -799,7 +964,7 @@
       let label, btn, col;
       if (S.nearNpc) {
         label = SPEAKERS[S.nearNpc.key].name;
-        btn = S.nearNpc.ending && doneCount() >= 81 ? '★ SUBIR' : '★ FALAR';
+        btn = S.nearNpc.ending && doneCount() >= TOTAL_PHASES ? '★ SUBIR' : '★ FALAR';
         col = '#c98a3a';
       } else {
         label = S.near.title.length > 16 ? S.near.title.slice(0, 15) + '…' : S.near.title;
@@ -828,6 +993,34 @@
       pTxt(ctx, 'Chegue numa conta ou pessoa e toque o botão.', W / 2, H - 132, 11, '#fff8d0');
       ctx.restore();
     }
+    drawBeacon(S.t);
+  }
+
+  // seta dourada apontando para a próxima conta a completar
+  function drawBeacon(t) {
+    if (!S.beacon.active || S.beacon.t <= 0) return;
+    const target = nextUndoneAnywhere();
+    if (!target) return;
+    const alpha = Math.min(1, S.beacon.t / 1.5) * (0.70 + 0.24 * Math.sin(t * 4));
+    const tx = target.x - S.cam.x;
+    const ty = target.y - S.cam.y;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    if (tx >= 24 && tx <= W - 24 && ty >= 60 && ty <= H - 120) {
+      // alvo visível: seta pulsante acima do spot
+      const ay = ty - 38 - Math.abs(Math.sin(t * 3.5)) * 10;
+      pTxt(ctx, '▼', tx, ay, 22, '#f2c038');
+      pTxt(ctx, 'vá aqui', tx, ay - 20, 9, '#f2c038', 'center', false);
+    } else {
+      // alvo fora da tela: seta na borda indicando direção
+      const angle = Math.atan2(ty - H / 2, tx - W / 2);
+      const ex = Math.max(28, Math.min(W - 28, W / 2 + Math.cos(angle) * 148));
+      const ey = Math.max(64, Math.min(H - 108, H / 2 + Math.sin(angle) * 240));
+      ctx.translate(ex, ey);
+      ctx.rotate(angle + Math.PI / 2);
+      pTxt(ctx, '▲', 0, 0, 20, '#f2c038');
+    }
+    ctx.restore();
   }
 
   function drawMinimap() {
@@ -855,11 +1048,12 @@
 
   // Cria objeto S.near sintético a partir do portal de bairro
   function districtNearObj(d) {
-    for (let k = 0; k < 9; k++) {
-      const g = d * 9 + k + 1;
+    for (let k = 0; k < DISTRICT_SIZES[d]; k++) {
+      const g = DISTRICT_STARTS[d] + k;
       if (!isDone(g)) return { g, d, title: ZONE[d].name, color: CHAPTERS[d].color, anchor: false };
     }
-    return { g: d * 9 + 9, d, title: ZONE[d].name + ' ✓', color: CHAPTERS[d].color, anchor: false };
+    const gLast = DISTRICT_STARTS[d] + DISTRICT_SIZES[d] - 1;
+    return { g: gLast, d, title: ZONE[d].name + ' ✓', color: CHAPTERS[d].color, anchor: false };
   }
 
   // ---------- entrada ----------
@@ -905,7 +1099,10 @@
 
   function startTutorial() {
     S.save.met.jona = true; S.save.met.mica = true; save();
-    startDialogue(STORY.meet.start, CHAPTERS[0].scene, () => enterWorld());
+    startDialogue(STORY.meet.start, CHAPTERS[0].scene, () => {
+      enterWorld();
+      triggerBeaconAndPan(18); // primeira vez: beacon dura mais
+    });
   }
   function handleTap(x, y) {
     switch (S.mode) {
@@ -924,7 +1121,7 @@
         if (S.puzzle && !S.puzzle.solved) S.puzzle.tap(x, y);
         break;
       case 'bead': if (S.winT > 0.8) { AudioFX.tap(); afterBead(); } break;
-      case 'ceu': if (S.winT > 8) { enterWorld(); AudioFX.tap(); } break;
+      case 'ceu': if (S.winT > 11) { enterWorld(); AudioFX.tap(); } break;
     }
   }
 
@@ -950,9 +1147,20 @@
         {
           const cur = S.dlg.lines[S.dlg.i];
           if (cur.who !== 'maju' && cur.who !== 'nar') S.dlg.right = cur.who;
-          const rightFn = (SPEAKERS[S.dlg.right] || SPEAKERS.vovo).body;
-          drawSpeaker(rightFn, 250, H - 230, cur.who === S.dlg.right, t, 0);
-          drawSpeaker(drawMaju, 70, H - 226, cur.who === 'maju', t, 1.2);
+          if (cur.who !== 'nar') {
+            const rightFn = (SPEAKERS[S.dlg.right] || SPEAKERS.vovo).body;
+            drawSpeaker(rightFn, 250, H - 230, cur.who === S.dlg.right, t, 0);
+            drawSpeaker(drawMaju, 70, H - 226, cur.who === 'maju', t, 1.2);
+          } else if (cur.text?.includes('acenam')) {
+            // Jonatha e Micaele acenam enquanto Maju parte
+            drawSpeaker(drawJonatha, 54,  H - 230, true, t, 0);
+            drawSpeaker(drawMicaele, 128, H - 230, true, t, 1.4);
+            const wb   = Math.sin(t * 5);
+            const jBob = Math.round(Math.sin(t * 3)       * 2.5);
+            const mBob = Math.round(Math.sin(t * 3 + 1.4) * 2.5);
+            PR(ctx, 88,  H - 248 + jBob - Math.round(wb * 8), 5, 5, '#3fae7a');  // mão Jonatha
+            PR(ctx, 162, H - 248 + mBob - Math.round(wb * 8), 5, 5, '#e87ab0');  // mão Micaele
+          }
         }
         drawDialogue(t);
         break;
@@ -967,7 +1175,11 @@
           const m = Math.hypot(vx, vy); if (m > 1) { vx /= m; vy /= m; }
         }
         World3D.update(dt, vx, vy, W, H, districtUnlocked);
-        World3D.draw(ctx, W, H, t, districtUnlocked);
+        World3D.draw(ctx, W, H, t, districtUnlocked, d => {
+          let cnt = 0;
+          for (let k = 0; k < DISTRICT_SIZES[d]; k++) if (isDone(DISTRICT_STARTS[d] + k)) cnt++;
+          return cnt;
+        });
         // proximidade (portais e NPCs)
         const sp3d  = World3D.nearSpot(districtUnlocked);
         const npc3d = World3D.nearNpc(districtUnlocked);
@@ -1020,7 +1232,7 @@
     near: () => S.near && S.near.g,
     nearNpc: () => S.nearNpc && S.nearNpc.key,
     unlocked: d => districtUnlocked(d),
-    completeDistrict: d => { for (let k = 0; k < 9; k++) S.save.done[d * 9 + k + 1] = true; save(); },
-    completeAll: () => { for (let g = 1; g <= 81; g++) S.save.done[g] = true; save(); },
+    completeDistrict: d => { for (let k = 0; k < DISTRICT_SIZES[d]; k++) { S.save.done[DISTRICT_STARTS[d] + k] = true; } save(); },
+    completeAll: () => { for (let g = 1; g <= TOTAL_PHASES; g++) { S.save.done[g] = true; } save(); },
   };
 })();
