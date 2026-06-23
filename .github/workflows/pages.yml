@@ -10,9 +10,12 @@ permissions:
   pages: write
   id-token: write
 
+# Permite um deploy por vez; não cancela o que está em andamento
+# para deixar a deployment de produção do Pages completar (evita a
+# corrida "in progress deployment" entre pushes em sequência).
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
