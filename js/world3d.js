@@ -6,7 +6,6 @@
 globalThis.World3D = (() => {
   const TW = 36, TH = 18, FH = 18;
   const COLS = 20, ROWS = 20;
-  const LABEL_DX = 24;   // desloca os nomes de bairro pra direita do pino
 
   // ---------- câmera dinâmica ----------
   // Valor inicial centrado na posição de start (col=5, row=3) para W=360 H=640
@@ -119,8 +118,8 @@ globalThis.World3D = (() => {
 
   // ---------- personagens no mundo ----------
   const WORLD_NPCS = [
-    { key: 'jona',    d: 0, col: 3,  row: 4,  color: '#3fae7a', label: 'JONATHA'   },
-    { key: 'mica',    d: 0, col: 5,  row: 4,  color: '#e87ab0', label: 'MICAELE'   },
+    { key: 'mica',    d: 0, col: 3,  row: 6,  color: '#e87ab0', label: 'MICAELE'   },
+    { key: 'jona',    d: 0, col: 8,  row: 9,  color: '#3fae7a', label: 'JONATHA'   },
     { key: 'jeff',    d: 1, col: 9,  row: 7,  color: '#f2a83a', label: 'TITIO JEFF' },
     { key: 'primos',  d: 2, col: 8,  row: 3,  color: '#70b8f0', label: 'OS PRIMOS', lesson: 'Primo é parceiro pra toda aventura, chuva ou sol.' },
     { key: 'renato',  d: 3, col: 3,  row: 11, color: '#8b5e2a', label: 'RENATO',    lesson: 'Fé é o que nos carrega quando as pernas cansam.' },
@@ -129,6 +128,46 @@ globalThis.World3D = (() => {
     { key: 'vovoMae', d: 7, col: 9,  row: 16, color: '#f0d878', label: 'VOVÓ MARIA', lesson: 'O amor que vai pro céu não desaparece.' },
     { key: 'vovo',    d: 8, col: 7,  row: 18, color: '#f2c038', label: 'VOVÔ MARO', ending: true },
   ];
+
+  // ---------- nós de fase (estilo Super Mario: cada concha é um ponto no mapa) ----------
+  // Gerados dos tiles caminháveis de cada zona: espalhados (farthest-point) e longe
+  // dos NPCs (pra não bloquear o ENTRAR). Determinístico — layout estável entre sessões.
+  const PHASE_NODES = (() => {
+    const npcNear = (c, r) => WORLD_NPCS.some(n => Math.abs(c - n.col) < 1.3 && Math.abs(r - n.row) < 1.3);
+    const used = new Set();
+    const out = [];
+    for (let d = 0; d < DISTRICT_SIZES.length; d++) {
+      const N = DISTRICT_SIZES[d], z = ZONE_BOUNDS[d];
+      const tiles = [];
+      for (let r = z.r1; r <= z.r2; r++) for (let c = z.c1; c <= z.c2; c++) {
+        const t = MAP[r] && MAP[r][c];
+        if ((t === 'g' || t === '.') && !used.has(c + ',' + r)) tiles.push({ col: c, row: r });
+      }
+      let free = tiles.filter(p => !npcNear(p.col, p.row));
+      if (free.length < N) free = tiles;                 // relaxa NPC se faltar chão
+      if (free.length === 0) continue;                   // zona sem chão (não deve ocorrer)
+      const sp = DISTRICT_SPOTS[d];
+      free.sort((a, b) => (Math.abs(a.col - sp.col) + Math.abs(a.row - sp.row)) - (Math.abs(b.col - sp.col) + Math.abs(b.row - sp.row)));
+      const pick = [free[0]];
+      while (pick.length < N && pick.length < free.length) {
+        let best = null, bestDist = -1;
+        for (const p of free) {
+          if (pick.some(q => q.col === p.col && q.row === p.row)) continue;
+          let md = Infinity;
+          for (const q of pick) { const dd = Math.hypot(p.col - q.col, p.row - q.row); if (dd < md) md = dd; }
+          if (md > bestDist) { bestDist = md; best = p; }
+        }
+        if (!best) break;
+        pick.push(best);
+      }
+      for (let i = 0; i < N; i++) {
+        const p = pick[i] || pick[pick.length - 1];
+        used.add(p.col + ',' + p.row);
+        out.push({ g: DISTRICT_STARTS[d] + i, d, col: p.col, row: p.row });
+      }
+    }
+    return out;
+  })();
 
   // ---------- arte: random determinístico ----------
   function rnd(a, b) {
@@ -398,75 +437,40 @@ globalThis.World3D = (() => {
     vovo:    drawVovo,
   };
 
-  // ---------- portal de bairro ----------
-  function spotLabel(ctx, x, y, text, bg, fg) {
-    ctx.font = 'bold 7px "Courier New", monospace';
-    const lw = ctx.measureText(text).width + 8;
-    ctx.fillStyle = bg;
-    ctx.fillRect(x - lw / 2, y - 8, lw, 10);
-    ctx.fillStyle = fg;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(text, x, y);
-  }
-
-  function drawSpot(ctx, t, spot, unlocked, prog, isNext) {
-    const { x, y } = iso(spot.col, spot.row);
+  // ---------- nó de fase (concha coletável no mapa, estilo Mario) ----------
+  function drawNode(ctx, t, node, done) {
+    const { x, y } = iso(node.col, node.row);
     const cy = y + TH / 2;
+    const sp = DISTRICT_SPOTS[node.d];
+    const color = sp?.color || '#f2c038';
 
-    if (!unlocked) {
-      if (isNext) {
-        ctx.save(); ctx.globalAlpha = 0.75;
-        ctx.fillStyle = '#4a6070';
-        ctx.beginPath(); ctx.arc(x, cy - 9, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#8aacbe';
-        ctx.fillRect(x - 3, cy - 16, 6, 8);
-        ctx.fillStyle = '#2a3840';
-        ctx.fillRect(x - 5, cy - 10, 10, 8);
-        ctx.restore();
-        ctx.save(); ctx.globalAlpha = 0.7;
-        spotLabel(ctx, x + LABEL_DX, cy - 20, spot.name, 'rgba(8,14,26,0.85)', '#7a9cb0');
-        ctx.restore();
-      } else {
-        ctx.save(); ctx.globalAlpha = 0.22;
-        ctx.fillStyle = '#304050';
-        ctx.beginPath(); ctx.arc(x, cy - 4, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-      }
+    if (done) {
+      // concha já coletada: marcador discreto com check verde
+      ctx.save(); ctx.globalAlpha = 0.55;
+      ctx.fillStyle = '#88ee88';
+      ctx.beginPath(); ctx.arc(x, cy - 8, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#44cc44'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(x, cy - 8, 7.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
       return;
     }
 
-    const allDone = prog.total > 0 && prog.done >= prog.total;
-    const pulse = Math.sin(t * 3 + spot.d) * 0.3 + 0.7;
-    const rise = Math.sin(t * 2.5 + spot.d * 1.1) * 3;
-
+    const pulse = Math.sin(t * 3 + node.g) * 0.3 + 0.7;
+    const rise = Math.sin(t * 2.5 + node.g * 1.1) * 3;
+    // halo no chão
     ctx.save(); ctx.globalAlpha = 0.28 * pulse;
-    ctx.fillStyle = spot.color;
-    ctx.beginPath(); ctx.arc(x, cy - 5, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x, cy - 5, 13, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
-
-    ctx.fillStyle = allDone ? '#88ee88' : spot.color;
-    ctx.beginPath(); ctx.arc(x, cy - 11 + rise, 5, 0, Math.PI * 2); ctx.fill();
-    if (allDone) {
-      ctx.save(); ctx.strokeStyle = '#44cc44'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(x, cy - 11 + rise, 8, 0, Math.PI * 2); ctx.stroke();
-      ctx.restore();
-    }
-
-    ctx.strokeStyle = spot.color; ctx.lineWidth = 1.5;
+    // poste até a concha flutuante
+    ctx.strokeStyle = color; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(x, cy - 6 + rise); ctx.lineTo(x, cy); ctx.stroke();
-
-    if (!allDone) {
-      // concha flutuante com brilho — deixa claro que há uma concha pra coletar aqui
-      const by = cy - 32 + rise;
-      ctx.strokeStyle = spot.color; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(x, cy - 11 + rise); ctx.lineTo(x, by + 6); ctx.stroke();
-      ctx.save(); ctx.globalAlpha = 0.5 * pulse;
-      ctx.fillStyle = '#ffe8a8';
-      ctx.beginPath(); ctx.arc(x, by, 12, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      drawBead(ctx, x, by, 6, spot.color, true);
-    }
-    // nome + progresso do bairro ativo agora ficam no HUD (drawWorldHud)
+    const by = cy - 26 + rise;
+    ctx.save(); ctx.globalAlpha = 0.5 * pulse;
+    ctx.fillStyle = '#ffe8a8';
+    ctx.beginPath(); ctx.arc(x, by, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    drawBead(ctx, x, by, 6, color, true);
   }
 
   // ---------- NPC no mundo (sprites reais de sprites.js) ----------
@@ -500,7 +504,7 @@ globalThis.World3D = (() => {
   }
 
   // ---------- render principal ----------
-  function draw(ctx, W, H, t, districtUnlockedFn, progressFn) {
+  function draw(ctx, W, H, t, districtUnlockedFn, isDoneFn) {
     drawSky(ctx, W, H);
     drawSun(ctx);
     drawClouds(ctx, t);
@@ -517,11 +521,9 @@ globalThis.World3D = (() => {
         queue.push({ kind: 'tile', col, row, depth: col + row });
       }
     }
-    for (const sp of DISTRICT_SPOTS) {
-      const unlocked = districtUnlockedFn(sp.d);
-      const isNext = !unlocked && (sp.d === 0 || districtUnlockedFn(sp.d - 1));
-      const prog = progressFn ? progressFn(sp.d) : { done: 0, total: 0 };
-      queue.push({ kind: 'spot', sp, depth: sp.col + sp.row + 0.4, unlocked, prog, isNext });
+    for (const node of PHASE_NODES) {
+      if (!districtUnlockedFn(node.d)) continue;
+      queue.push({ kind: 'node', node, depth: node.col + node.row + 0.4, done: isDoneFn ? isDoneFn(node.g) : false });
     }
     for (const npc of WORLD_NPCS) {
       queue.push({ kind: 'npc', npc, depth: npc.col + npc.row + 0.5 });
@@ -559,8 +561,8 @@ globalThis.World3D = (() => {
             }
           }
         }
-      } else if (item.kind === 'spot') {
-        drawSpot(ctx, t, item.sp, item.unlocked, item.prog, item.isNext);
+      } else if (item.kind === 'node') {
+        drawNode(ctx, t, item.node, item.done);
       } else if (item.kind === 'npc') {
         if (districtUnlockedFn(item.npc.d)) drawNpc(ctx, t, item.npc);
       } else if (item.kind === 'player') {
@@ -593,12 +595,24 @@ globalThis.World3D = (() => {
   }
 
   // ---------- proximidade ----------
+  // nó de fase mais próximo (em distrito desbloqueado), dentro do raio de interação
   function nearSpot(districtUnlockedFn) {
-    for (const sp of DISTRICT_SPOTS) {
-      if (!districtUnlockedFn(sp.d)) continue;
-      if (Math.abs(player.col - sp.col) < 1.3 && Math.abs(player.row - sp.row) < 1.3) return sp;
+    let best = null, bestDist = Infinity;
+    for (const node of PHASE_NODES) {
+      if (!districtUnlockedFn(node.d)) continue;
+      if (Math.abs(player.col - node.col) < 1.3 && Math.abs(player.row - node.row) < 1.3) {
+        const dist = Math.hypot(player.col - node.col, player.row - node.row);
+        if (dist < bestDist) { bestDist = dist; best = node; }
+      }
     }
-    return null;
+    return best;
+  }
+  // posição de tela (px) do nó da fase g — usada pela seta-guia
+  function nodeScreen(g) {
+    const node = PHASE_NODES.find(n => n.g === g);
+    if (!node) return null;
+    const { x, y } = iso(node.col, node.row);
+    return { x, y: y + TH / 2 };
   }
 
   function nearNpc(districtUnlockedFn) {
@@ -622,5 +636,5 @@ globalThis.World3D = (() => {
     camX = 0; camY = 0; // força re-centrar
   }
 
-  return { draw, update, nearSpot, nearNpc, spotScreen, currentDistrict, districtName, reset, player };
+  return { draw, update, nearSpot, nearNpc, spotScreen, nodeScreen, currentDistrict, districtName, reset, player };
 })();

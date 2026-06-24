@@ -120,13 +120,18 @@
     try {
       const s = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
       if (s.v === 3) {
-        return { v: 3, done: s.done || {}, opened: !!s.opened, fin: !!s.fin, maju: s.maju || null, met: s.met || {} };
+        // briefed: missão já explicada → libera a seta dourada.
+        // Migração: quem já conheceu os dois pais (tutorial antigo) ou já tem progresso.
+        const briefed = !!s.briefed
+          || !!(s.met && s.met.jona && s.met.mica)
+          || Object.keys(s.done || {}).length > 0;
+        return { v: 3, done: s.done || {}, opened: !!s.opened, fin: !!s.fin, maju: s.maju || null, met: s.met || {}, briefed };
       }
       const prog = s.v === 2 ? Math.min(TOTAL_PHASES, s.prog || 0) : 0;
       const done = {};
       for (let i = 1; i <= Math.min(prog, TOTAL_PHASES); i++) done[i] = true;
-      return { v: 3, done, opened: !!s.opened, fin: prog >= TOTAL_PHASES, maju: null, met: {} };
-    } catch { return { v: 3, done: {}, opened: false, fin: false, maju: null, met: {} }; }
+      return { v: 3, done, opened: !!s.opened, fin: prog >= TOTAL_PHASES, maju: null, met: {}, briefed: !!s.opened };
+    } catch { return { v: 3, done: {}, opened: false, fin: false, maju: null, met: {}, briefed: false }; }
   }
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S.save)); } catch {} }
   function isDone(g) { return !!S.save.done[g]; }
@@ -209,10 +214,13 @@
 
   // ---------- diálogo ----------
   function firstSpeaker(lines) {
+    if (!Array.isArray(lines)) return null;
     const l = lines.find(x => x.who !== 'maju' && x.who !== 'nar');
-    return l ? l.who : 'vovo';
+    return l ? l.who : null;   // null = cena só com Maju (sonho/recomendação)
   }
   function startDialogue(lines, sceneN, after) {
+    // diálogo ausente/inválido (dado faltando ou cache desatualizado): não trava — segue o fluxo
+    if (!Array.isArray(lines) || lines.length === 0) { if (typeof after === 'function') after(); return; }
     S.mode = 'dialogue';
     S.sceneN = sceneN;
     S.dlg = { lines, i: 0, chars: 0, after, right: firstSpeaker(lines) };
@@ -781,7 +789,10 @@
   }
   function talkNpc(npc) {
     if (npc.ending && doneCount() >= TOTAL_PHASES) { startEnding(); return; }
-    const first = !S.save.met[npc.key];
+    // Pais: a 1ª fala (boas-vindas / missão) toca enquanto a missão não foi explicada;
+    // os demais NPCs usam "já conheci" (met).
+    const isParent = npc.key === 'jona' || npc.key === 'mica';
+    const first = isParent ? !S.save.briefed : !S.save.met[npc.key];
     S.save.met[npc.key] = true; save();
     let lines;
     if (npc.key === 'vovo') {
@@ -791,8 +802,7 @@
       ];
     } else {
       const key = first ? npc.key : npc.key + 'Again';
-      // fallback robusto: jona/mica só têm 1ª fala via tutorial (STORY.meet.start);
-      // se a chave não existir (ex.: save migrado sem tutorial), nunca passa undefined.
+      // fallback robusto: se a chave não existir, nunca passa undefined pro diálogo.
       lines = STORY.meet[key] || STORY.meet[npc.key + 'Again'] || STORY.meet[npc.key] || STORY.meet.start;
     }
     if (!lines?.length) return; // segurança extra: sem falas, não trava a tela
@@ -800,6 +810,12 @@
       enterWorld();
       if (first && npc.lesson) {
         S.toast = { text: '✦ Lição aprendida', sub: npc.lesson, t: 5.5, color: '#f2c038', bg: 'rgba(20,12,4,0.94)', textColor: '#f2c038' };
+      }
+      // Jonatha explica a missão: libera a seta dourada até as conchas
+      if (first && npc.key === 'jona' && !S.save.briefed) {
+        S.save.briefed = true; save();
+        triggerBeaconAndPan(18);
+        S.toast = { text: 'Siga a seta dourada até a primeira concha', t: 4.5 };
       }
     });
   }
@@ -989,7 +1005,12 @@
       if (tk.sub) pTxt(ctx, tk.sub, W / 2, 104, 10, '#fff8d0', 'center', false);
       ctx.restore();
     }
-    if (S.helpT > 0 && !S.toast) {
+    if (!S.save.briefed && !S.toast) {
+      ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.abs(Math.sin(t * 2));
+      pTxt(ctx, 'Fale com a mainha e o painho', W / 2, H - 150, 12, '#fff8d0');
+      pTxt(ctx, 'Chegue perto e toque em ★ FALAR.', W / 2, H - 132, 11, '#fff8d0');
+      ctx.restore();
+    } else if (S.helpT > 0 && !S.toast) {
       ctx.save(); ctx.globalAlpha = Math.min(1, S.helpT);
       pTxt(ctx, 'Arraste no canto p/ andar.', W / 2, H - 150, 12, '#fff8d0');
       pTxt(ctx, 'Chegue numa concha ou pessoa e toque o botão.', W / 2, H - 132, 11, '#fff8d0');
@@ -1019,9 +1040,10 @@
 
   // seta dourada — guia persistente apontando para o portal do bairro da próxima conta
   function drawBeacon(t) {
+    if (!S.save.briefed) return;                 // missão ainda não explicada: sem seta
     const target = nextUndoneAnywhere();
     if (!target) return;                         // tudo concluído: sem guia
-    const pos = World3D.spotScreen(target.d);    // posição de tela do portal (iso)
+    const pos = World3D.nodeScreen(target.g);    // posição de tela do nó da próxima concha (iso)
     if (!pos) return;
     const alpha = 0.72 + 0.22 * Math.sin(t * 4);
     const tx = pos.x, ty = pos.y;
@@ -1067,16 +1089,6 @@
     if (d !== undefined) World3D.reset(d);
   }
 
-  // Cria objeto S.near sintético a partir do portal de bairro
-  function districtNearObj(d) {
-    for (let k = 0; k < DISTRICT_SIZES[d]; k++) {
-      const g = DISTRICT_STARTS[d] + k;
-      if (!isDone(g)) return { g, d, title: ZONE[d].name, color: CHAPTERS[d].color, anchor: false };
-    }
-    const gLast = DISTRICT_STARTS[d] + DISTRICT_SIZES[d] - 1;
-    return { g: gLast, d, title: ZONE[d].name + ' ✓', color: CHAPTERS[d].color, anchor: false };
-  }
-
   // ---------- entrada ----------
   let ptr = { down: false, sx: 0, sy: 0, x: 0, y: 0 };
   function toGame(e) {
@@ -1119,11 +1131,8 @@
   window.addEventListener('keyup', e => { keys[e.key.length === 1 ? e.key.toLowerCase() : e.key] = false; });
 
   function startTutorial() {
-    S.save.met.jona = true; S.save.met.mica = true; save();
-    startDialogue(STORY.meet.start, CHAPTERS[0].scene, () => {
-      enterWorld();
-      triggerBeaconAndPan(18); // primeira vez: beacon dura mais
-    });
+    // Boas-vindas dos pais (cutscene); a missão é explicada quando ela falar com eles no mundo.
+    startDialogue(STORY.meet.welcome, CHAPTERS[0].scene, () => { enterWorld(); });
   }
   function handleTap(x, y) {
     switch (S.mode) {
@@ -1169,9 +1178,11 @@
           const cur = S.dlg.lines[S.dlg.i];
           if (cur.who !== 'maju' && cur.who !== 'nar') S.dlg.right = cur.who;
           if (cur.who !== 'nar') {
-            const rightFn = (SPEAKERS[S.dlg.right] || SPEAKERS.vovo).body;
-            drawSpeaker(rightFn, 250, H - 230, cur.who === S.dlg.right, t, 0);
-            drawSpeaker(drawMaju, 70, H - 226, cur.who === 'maju', t, 1.2);
+            if (S.dlg.right && SPEAKERS[S.dlg.right]) {
+              drawSpeaker(SPEAKERS[S.dlg.right].body, 250, H - 230, cur.who === S.dlg.right, t, 0);
+            }
+            // sem NPC na cena (sonho/recomendação): Maju aparece sozinha, centralizada
+            drawSpeaker(drawMaju, S.dlg.right ? 70 : 150, H - 226, cur.who === 'maju', t, 1.2);
           } else if (cur.text?.includes('acenam')) {
             // Jonatha e Micaele acenam enquanto Maju parte
             drawSpeaker(drawJonatha, 54,  H - 230, true, t, 0);
@@ -1196,16 +1207,14 @@
           const m = Math.hypot(vx, vy); if (m > 1) { vx /= m; vy /= m; }
         }
         World3D.update(dt, vx, vy, W, H, districtUnlocked);
-        World3D.draw(ctx, W, H, t, districtUnlocked, d => {
-          let cnt = 0;
-          for (let k = 0; k < DISTRICT_SIZES[d]; k++) if (isDone(DISTRICT_STARTS[d] + k)) cnt++;
-          return { done: cnt, total: DISTRICT_SIZES[d] };
-        });
-        // proximidade (portais e NPCs)
+        World3D.draw(ctx, W, H, t, districtUnlocked, isDone);
+        // proximidade (nós de fase e NPCs)
         const sp3d  = World3D.nearSpot(districtUnlocked);
         const npc3d = World3D.nearNpc(districtUnlocked);
         S.nearNpc = npc3d || null;
-        S.near = (!npc3d && sp3d) ? districtNearObj(sp3d.d) : null;
+        S.near = (!npc3d && sp3d)
+          ? { g: sp3d.g, d: sp3d.d, title: getLevel(sp3d.g).title, color: CHAPTERS[sp3d.d].color }
+          : null;
         drawWorldHud(t);
         if (S.helpT > 0) S.helpT -= dt;
         if (S.toast) { S.toast.t -= dt; if (S.toast.t <= 0) S.toast = null; }
@@ -1255,5 +1264,9 @@
     unlocked: d => districtUnlocked(d),
     completeDistrict: d => { for (let k = 0; k < DISTRICT_SIZES[d]; k++) { S.save.done[DISTRICT_STARTS[d] + k] = true; } save(); },
     completeAll: () => { for (let g = 1; g <= TOTAL_PHASES; g++) { S.save.done[g] = true; } save(); },
+    // testes de onboarding: zera o save inteiro e recarrega (fluxo de jogador novo)
+    reset: () => { try { localStorage.removeItem(SAVE_KEY); } catch {} location.reload(); },
+    // re-testar as intros dos pais sem perder progresso: faz a missão voltar a ser "não explicada"
+    rebrief: () => { S.save.briefed = false; S.save.met.jona = false; S.save.met.mica = false; save(); return 'briefed=false; fale com a Micaele e o Jonatha de novo'; },
   };
 })();

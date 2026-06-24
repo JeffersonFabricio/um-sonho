@@ -5,8 +5,8 @@
 const STORY = {
   opening: [
     { who: 'maju', text: 'Isto é um sonho?' },
-    { who: 'vovo',  text: 'O Recife pulsa ao longe, frevo, batuque, mangue, arrecife.' },
-    { who: 'maju',  text: 'Você é o Vovô?' },
+    { who: 'maju', text: 'Tô ouvindo um batuque ao longe...' },
+    { who: 'maju', text: 'Um mangue, a praia, gente dançando frevo!' },
     { who: 'maju', text: '... Onde eu tô?' },
   ],
 
@@ -194,7 +194,7 @@ STORY.meet = {
   // Tutorial: Jonatha (pai) e Micaele (mãe) se despedem da filha (Recife Antigo)
   start: [
     { who: 'jona', text: 'Maju! Que bom que chegou! Bem-vinda ao Recife Antigo, filha!' },
-    { who: 'mica', text: 'Por aqui tudo começou — a cidade, as histórias, a nossa família.' },
+    { who: 'mica', text: 'Por aqui tudo começou... A cidade, as histórias, a nossa família.' },
     { who: 'jona', text: 'Mas aconteceu algo hoje. O vovô Maro perdeu o colar das marés.' },
     { who: 'maju', text: 'O colar do vovô? O que guarda as histórias do Recife?' },
     { who: 'mica', text: 'Esse mesmo. Trinta e uma conchas espalhadas pela cidade inteira!' },
@@ -208,26 +208,40 @@ STORY.meet = {
     { who: 'maju', text: 'Esse colar volta inteirinho. Eu prometo!' },
     { who: 'nar',  text: 'Jonatha e Micaele acenam até Maju virar a esquina. O Recife começa a se abrir diante dela.' },
   ],
-  // Primeira conversa a sós com o pai (rede de segurança / saves antigos)
+  // Boas-vindas: o mundo nasce e os pais recebem a Maju antes de virarem NPCs
+  welcome: [
+    { who: 'nar',  text: 'O sonho ganha forma: o Recife Antigo nasce diante da Maju.' },
+    { who: 'jona', text: 'Maju! Que bom que chegou, filha! Bem-vinda ao Recife Antigo!' },
+    { who: 'mica', text: 'Foi por aqui que tudo começou — a cidade, as histórias, a nossa família.' },
+    { who: 'maju', text: 'Mainha! Painho! Que cidade linda é essa toda?' },
+    { who: 'jona', text: 'É o Recife, no teu sonho mais bonito. E hoje ele precisa de ti.' },
+    { who: 'mica', text: 'A gente fica por aqui, meu amor. Vem falar com a gente.' },
+    { who: 'nar',  text: 'Fale com a Micaele e, depois, com o Jonatha.' },
+  ],
+  // Primeira conversa com o pai — ele explica a missão do colar (libera a seta)
   jona: [
-    { who: 'jona', text: 'Tudo bem por aí, minha filha? Eu fico aqui no Recife Antigo, pode ir tranquila.' },
-    { who: 'maju', text: 'Tô bem, painho! Só passei pra te ver.' },
-    { who: 'jona', text: 'Vem cá então. Sabe o que mais me enche de orgulho? Não são as conchas, não. É a coragem que tu tem.' },
-    { who: 'maju', text: 'Aprendi com o senhor, painho.' },
-    { who: 'jona', text: 'Aprendeu nada, já nasceu valente. Vai, que o coração tá contigo a cada passo.' },
+    { who: 'jona', text: 'Maju! Que orgulho ver minha menina aqui!' },
+    { who: 'jona', text: 'Aconteceu uma coisa hoje: o vovô Maro perdeu o colar das marés.' },
+    { who: 'maju', text: 'O colar do vovô? O que guarda as histórias do Recife?' },
+    { who: 'jona', text: 'Esse mesmo. As conchas se espalharam pela cidade inteira!' },
+    { who: 'jona', text: 'O vovô parte com os jangadeiros ao pôr do sol. Precisa do colar inteiro antes.' },
+    { who: 'maju', text: 'Então eu vou atrás delas! Por onde começo?' },
+    { who: 'jona', text: 'As conchas brilham douradas pelo mapa. Chega perto de uma e toca em ENTRAR.' },
+    { who: 'jona', text: 'Cada bairro tem as suas. Completa todas e a ponte pro próximo se abre pra ti.' },
+    { who: 'jona', text: 'Segue a seta dourada, filha — e volta logo pro abraço do painho.' },
+    { who: 'maju', text: 'Esse colar volta inteirinho. Eu prometo!' },
   ],
   jonaAgain: [
     { who: 'jona', text: 'Tá indo lindo, filha. Completa as conchas do bairro que a ponte se abre pra ti.' },
     { who: 'maju', text: 'Pode deixar, painho!' },
     { who: 'jona', text: 'Esse é o jeito da minha menina. Vai com cuidado e volta logo pro abraço do painho.' },
   ],
-  // Primeira conversa a sós com a mãe (rede de segurança / saves antigos)
+  // Primeira conversa com a mãe (após as boas-vindas) — encaminha pro painho
   mica: [
-    { who: 'mica', text: 'Minha menina... deixa a mainha te olhar direito. Tá te cuidando nessa correria toda?' },
-    { who: 'maju', text: 'Tô sim, mainha! Tô só atrás das conchas do vovô.' },
-    { who: 'mica', text: 'Eu sei, meu amor. Olha o minimapa ali em cima: as conchas douradas são as que tu já pegou.' },
-    { who: 'maju', text: 'Boa, mainha! Já tô achando o caminho.' },
-    { who: 'mica', text: 'Tô vendo, filha. Vai com fé — a mainha fica aqui rezando baixinho por ti.' },
+    { who: 'mica', text: 'Deixa a mainha te olhar, minha menina... que sonho lindo a gente tá vivendo.' },
+    { who: 'maju', text: 'Mainha! Mas o que tá acontecendo no Recife?' },
+    { who: 'mica', text: 'Vai falar com o teu painho, meu amor. Ele te explica tudo direitinho.' },
+    { who: 'maju', text: 'Tô indo!' },
   ],
   micaAgain: [
     { who: 'mica', text: 'Devagar com o coração, filha, que a maré não tem pressa. Se te perder, olha o minimapa.' },
