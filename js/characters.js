@@ -28,7 +28,7 @@ const CHARACTERS = {
              portrait: { face: MAJU_FACE, pal: FACE_PAL } },
 
   jona:    { name: 'JONATHA',       color: '#3fae7a', draw: drawJonatha, d: 0, kid: true,
-             free: { dx: -52, dy: -176 }, world: { col: 8, row: 9 } },
+             free: { dx: -52, dy: -176 }, world: { col: 5, row: 6 } },
   mica:    { name: 'MICAELE',       color: '#e87ab0', draw: drawMicaele, d: 0, kid: true,
              free: { dx:  52, dy: -176 }, world: { col: 3, row: 6 } },
   jeff:    { name: 'TITIO JEFF',    color: '#f2a83a', draw: drawJeff, d: 1,
@@ -47,6 +47,10 @@ const CHARACTERS = {
              free: { dx: 0, dy: -176 }, world: { col: 3, row: 16 } },
   vovoMae: { name: 'VOVÓ MARIA',    color: '#f0d878', draw: drawVovoMae, d: 7, lesson: LESSONS.amorCeu,
              free: { dx: 0, dy: -176 }, world: { col: 9, row: 16 } },
+  // Pais juntos no Cais da Alfândega (d8) — reencontro afetivo, sem ending, sem concha.
+  osPais:  { name: 'PAINHO E MAINHA', color: '#3fae7a', draw: drawPais, d: 8,
+             lesson: 'Coragem do painho e fé da mainha caminham com você.',
+             free: { dx: -80, dy: -176 }, world: { col: 4, row: 17, label: 'PAINHO E MAINHA', color: '#e87ab0' } },
   vovo:    { name: 'VOVÔ MARO',     color: '#caa15a', draw: drawVovo, d: 8, ending: true,
              portrait: { face: VOVO_FACE, pal: VOVO_FACE_PAL },
              free: { dx: 0, dy: -214 }, world: { col: 7, row: 18, color: '#f2c038' } },

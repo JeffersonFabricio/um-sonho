@@ -360,6 +360,29 @@ STORY.meet = {
     { who: 'maju',    text: 'Sinto isso, vovó. Sinto mesmo.' },
     { who: 'vovoMae', text: 'Vai, meu amor. O colar vai ficar lindo.' },
   ],
+
+  // Reencontro com os pais (Jonatha + Micaele) no Cais da Alfândega (d8) — cena cheia
+  osPais: [
+    { who: 'nar',  text: 'O sol começa a se deitar no Cais da Alfândega. Entre as jangadas, dois rostos conhecidos esperam.' },
+    { who: 'mica', text: 'Maju! Minha filha... olha só quanto chão tu andou!' },
+    { who: 'maju', text: 'Painho! Mainha! Vocês vieram!' },
+    { who: 'jona', text: 'Viemos, sim. A gente te viu de longe, atravessando o Recife inteiro.' },
+    { who: 'mica', text: 'Sol, mar, chuva, mangue, tambor, frevo... tu passou por tudo, meu amor.' },
+    { who: 'maju', text: 'Teve hora que cansei, mainha. Achei que não ia dar conta.' },
+    { who: 'jona', text: 'Mas deu. Tu já nasceu valente, filha — a coragem tava em ti desde o começo.' },
+    { who: 'mica', text: 'E o resto a fé carrega. A gente nunca soltou tua mão, mesmo de longe.' },
+    { who: 'maju', text: 'Eu senti vocês comigo o tempo todo.' },
+    { who: 'jona', text: 'Falta pouco agora. O vovô Maro te espera ali na ponta do cais, com a última maré.' },
+    { who: 'mica', text: 'Vai, minha Maju. A gente fica bem aqui, te vendo chegar.' },
+    { who: 'maju', text: 'Quando o colar tiver inteiro, eu volto pro abraço de vocês!' },
+    { who: 'nar',  text: 'Jonatha e Micaele acenam. O cais inteiro parece sorrir com a Maju.' },
+  ],
+  // Reencontro com os pais — fala curta (já se conheceram)
+  osPaisAgain: [
+    { who: 'mica', text: 'Tamo aqui, filha. Vai pegar o resto, que a gente te espera.' },
+    { who: 'jona', text: 'Coragem e fé, Maju. Já já tu volta com o colar inteiro.' },
+    { who: 'maju', text: 'Já tô indo! Amo vocês!' },
+  ],
 };
 
 // Final: o Vovô leva a Maju pelo céu do Recife

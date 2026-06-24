@@ -309,6 +309,11 @@ function drawPrimos(ctx, x, y, s = U) {
   drawMap(ctx, JONA_MAP, RAVI_PAL, x - Math.round(s * 4), y + Math.round(s * 0.5), s);
   drawMap(ctx, JONA_MAP, NICO_PAL, x + Math.round(s * 4), y, s);
 }
+// Jonatha e Micaele lado a lado — ponto interativo do Cais (d8) e da abertura (d0)
+function drawPais(ctx, x, y, s = U) {
+  drawMap(ctx, JONA_MAP, JONA_PAL, x - Math.round(s * 4), y + Math.round(s * 0.5), s);
+  drawMap(ctx, MICA_MAP, MICA_PAL, x + Math.round(s * 4), y, s);
+}
 
 function drawCrab(ctx, x, y, s = U) { drawMap(ctx, CRAB_MAP, CRAB_PAL, x, y, s); }
 function drawShark(ctx, x, y, s = U, flip = false) {
