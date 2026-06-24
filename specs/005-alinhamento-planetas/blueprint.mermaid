@@ -1,0 +1,18 @@
+stateDiagram-v2
+    [*] --> Embaralhado: new OrbitPuzzle({rings})
+    note right of Embaralhado
+        N anéis, cada planeta numa de 8
+        posições da rosa dos ventos.
+        Nenhum começa no Norte → nunca
+        abre resolvido (solved = false).
+    end note
+
+    Embaralhado --> Girando: tap(x,y) sobre um anel
+    Girando --> Girando: gira só aquele anel\n+1 passo horário (8 posições)
+    Girando --> Embaralhado: tap fora de qualquer anel\n(no-op)
+
+    Girando --> Verifica: após cada toque
+    Verifica --> Girando: nem todos no Norte
+    Verifica --> Alinhado: todos os planetas no Norte
+
+    Alinhado --> [*]: solved = true → AudioFX.win()\n→ onPuzzleSolved → done[3]=true → save()
