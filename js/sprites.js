@@ -309,6 +309,49 @@ function drawPrimos(ctx, x, y, s = U) {
   drawMap(ctx, JONA_MAP, RAVI_PAL, x - Math.round(s * 4), y + Math.round(s * 0.5), s);
   drawMap(ctx, JONA_MAP, NICO_PAL, x + Math.round(s * 4), y, s);
 }
+// Jonatha e Micaele lado a lado — ponto interativo do Cais (d8) e da abertura (d0)
+function drawPais(ctx, x, y, s = U) {
+  drawMap(ctx, JONA_MAP, JONA_PAL, x - Math.round(s * 4), y + Math.round(s * 0.5), s);
+  drawMap(ctx, MICA_MAP, MICA_PAL, x + Math.round(s * 4), y, s);
+}
+
+// Igreja das Marias: torre branca com sino dourado + as duas avós lado a lado.
+// Usado pela cena de reencontro (gate met.vova && met.vovoMae) — sem asset externo (Lei §5).
+function drawIgrejaMarias(ctx, x, y, s = 2) {
+  // --- fachada da igreja ---
+  const W = Math.round(22 * s);
+  const H = Math.round(28 * s);
+  // corpo principal (branco colonial)
+  PR(ctx, x, y + Math.round(10 * s), W, H, '#f5efe0');
+  // platibanda/cornija dourada
+  PR(ctx, x - Math.round(s), y + Math.round(9 * s), W + Math.round(2 * s), Math.round(2 * s), '#d9b25c');
+  // janelas laterais
+  PR(ctx, x + Math.round(2 * s), y + Math.round(14 * s), Math.round(5 * s), Math.round(7 * s), '#2a3a4f');
+  PR(ctx, x + Math.round(2 * s), y + Math.round(14 * s), Math.round(2 * s), Math.round(3 * s), '#4a6a8f'); // brilho
+  PR(ctx, x + Math.round(15 * s), y + Math.round(14 * s), Math.round(5 * s), Math.round(7 * s), '#2a3a4f');
+  PR(ctx, x + Math.round(15 * s), y + Math.round(14 * s), Math.round(2 * s), Math.round(3 * s), '#4a6a8f');
+  // porta central
+  PR(ctx, x + Math.round(8 * s), y + Math.round(27 * s), Math.round(6 * s), Math.round(11 * s), '#5a3a22');
+  PR(ctx, x + Math.round(9 * s), y + Math.round(28 * s), Math.round(4 * s), Math.round(9 * s), '#37261a');
+  // --- torre (acima do corpo, centrada) ---
+  const tx = x + Math.round(7 * s);
+  const tw = Math.round(8 * s);
+  PR(ctx, tx, y - Math.round(16 * s), tw, Math.round(26 * s), '#f5efe0');
+  // cornija da torre
+  PR(ctx, tx - Math.round(s), y - Math.round(17 * s), tw + Math.round(2 * s), Math.round(2 * s), '#d9b25c');
+  // janela do sino (abertura escura + arco)
+  PR(ctx, tx + Math.round(2 * s), y - Math.round(10 * s), Math.round(4 * s), Math.round(5 * s), '#2a3a4f');
+  // sino dourado
+  PR(ctx, tx + Math.round(2.5 * s), y - Math.round(7 * s), Math.round(3 * s), Math.round(3 * s), '#d9b25c');
+  // espadana/agulha
+  PR(ctx, tx + Math.round(3 * s), y - Math.round(24 * s), Math.round(2 * s), Math.round(9 * s), '#f5efe0');
+  PR(ctx, tx + Math.round(3.5 * s), y - Math.round(27 * s), Math.round(s), Math.round(4 * s), '#d9b25c');
+  // --- as duas avós lado a lado, abaixo da fachada ---
+  // vovó Maria José (vova) à esquerda
+  drawVova(ctx, x - Math.round(s * 2), y + Math.round(38 * s), s);
+  // vovó Maria Rita (vovoMae, do céu) à direita — com halo
+  drawVovoMae(ctx, x + Math.round(12 * s), y + Math.round(38 * s), s);
+}
 
 function drawCrab(ctx, x, y, s = U) { drawMap(ctx, CRAB_MAP, CRAB_PAL, x, y, s); }
 function drawShark(ctx, x, y, s = U, flip = false) {
@@ -878,9 +921,8 @@ const SCENES = {
       casa(ctx, 420, 0);
       PR(ctx, 0, 420, 360, 220, '#d8c8a8'); // praça
       PR(ctx, 0, 420, 360, 4, 'rgba(255,255,255,0.18)');
-      PR(ctx, 150, 480, 60, 60, '#c8b490'); // rosa dos ventos
-      PR(ctx, 176, 470, 8, 80, '#8a6a4a');
-      PR(ctx, 140, 506, 80, 8, '#8a6a4a');
+      // disco circular da rosa dos ventos (piso fiel ao Marco Zero de Cícero Dias)
+      drawRosaDosVentos(ctx, 180, 510, 128);
     },
     d(ctx, t) {
       sun(ctx, 290, 80, 26, t);
@@ -1061,6 +1103,61 @@ function mangueRootsSil(ctx, yBase) {
   for (let i = 0; i < 5; i++) mangueTree(ctx, 30 + i * 78, yBase - 14, 40 + (i * 17 % 16), far);
   const near = { wood: '#0e140a', woodD: '#0e140a', leaf: '#13110a', leafD: '#13110a', leafL: '#13110a' };
   for (let i = 0; i < 4; i++) mangueTree(ctx, 6 + i * 104, yBase, 58 + (i * 23 % 24), near);
+}
+
+// ---------- Rosa dos Ventos do Marco Zero (piso circular de Cícero Dias) ----------
+// Disco grande: anel externo azul, miolo creme, estrela de 8 pontas colorida e marcações.
+// Compartilhado entre SCENES[1].s (piso da cena) e OrbitPuzzle (tabuleiro do puzzle).
+function drawRosaDosVentos(ctx, cx, cy, r) {
+  // anel externo azul
+  PR(ctx, cx - r, cy - r / 2, r * 2, r, '#1d6fa3');
+  PR(ctx, cx - r / 2, cy - r, r, r * 2, '#1d6fa3');
+  PR(ctx, cx - r * 0.85, cy - r * 0.85, r * 1.7, r * 1.7, '#1d6fa3');
+  // miolo creme
+  const ri = Math.round(r * 0.72);
+  PR(ctx, cx - ri, cy - ri / 2, ri * 2, ri, '#f5efe0');
+  PR(ctx, cx - ri / 2, cy - ri, ri, ri * 2, '#f5efe0');
+  PR(ctx, cx - ri * 0.85, cy - ri * 0.85, ri * 1.7, ri * 1.7, '#f5efe0');
+  // estrela de 8 pontas (alternando cores da paleta semântica)
+  const STAR_CORES = ['#f2c038', '#d94f4f', '#5b8bd9', '#67b06b', '#f2c038', '#c97bb6', '#5b8bd9', '#d94f4f'];
+  const rs = Math.round(r * 0.58); // raio das pontas
+  const rc = Math.round(r * 0.22); // raio do núcleo
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    const ax = Math.cos(a), ay = Math.sin(a);
+    // ponta da estrela: triângulo estreito do centro até rs
+    const pxT = Math.round(cx + ax * rs), pyT = Math.round(cy + ay * rs);
+    const pxL = Math.round(cx + Math.cos(a - 0.3) * rc), pyL = Math.round(cy + Math.sin(a - 0.3) * rc);
+    const pxR = Math.round(cx + Math.cos(a + 0.3) * rc), pyR = Math.round(cy + Math.sin(a + 0.3) * rc);
+    ctx.fillStyle = STAR_CORES[i];
+    ctx.beginPath();
+    ctx.moveTo(pxT, pyT);
+    ctx.lineTo(pxL, pyL);
+    ctx.lineTo(pxR, pyR);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // raios marcadores N/NE/E/SE/S/SO/O/NO (linhas finas sobre o miolo)
+  const DIRS = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+  ctx.fillStyle = '#0a1a2f';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    const x1 = Math.round(cx + Math.cos(a) * rc);
+    const y1 = Math.round(cy + Math.sin(a) * rc);
+    const x2 = Math.round(cx + Math.cos(a) * Math.round(r * 0.62));
+    const y2 = Math.round(cy + Math.sin(a) * Math.round(r * 0.62));
+    PR(ctx, Math.min(x1, x2) - 1, Math.min(y1, y2) - 1, Math.abs(x2 - x1) + 2, Math.abs(y2 - y1) + 2, '#0a1a2f');
+  }
+  // núcleo central
+  PR(ctx, cx - rc, cy - rc / 2, rc * 2, rc, '#f2c038');
+  PR(ctx, cx - rc / 2, cy - rc, rc, rc * 2, '#f2c038');
+  // marcação N em destaque (Norte da rosa dos ventos)
+  const nSize = Math.max(8, Math.round(r * 0.16));
+  ctx.fillStyle = '#0a1a2f';
+  ctx.font = `bold ${nSize}px "Courier New", monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('N', cx, cy - Math.round(r * 0.84));
 }
 
 // cache de camadas estáticas das cenas (renderizadas uma vez por cena)

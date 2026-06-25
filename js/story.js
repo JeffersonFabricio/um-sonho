@@ -184,6 +184,7 @@ const PUZZLE_HINTS = {
   8: 'Observe a sequência de sombrinhas e escolha a próxima. 3 rodadas!',
   9: 'Arraste os cursores e toque em TOCAR. As setas mostram se sobe ou desce!',
   10: 'Toque nas setas para montar a rota e depois em ZARPAR. Desvie das pedras!',
+  11: 'Toque em cada anel para girá-lo um passo. Alinhe todos os planetas no Norte da rosa dos ventos!',
 };
 
 // ============================================================
@@ -359,6 +360,51 @@ STORY.meet = {
     { who: 'vovoMae', text: 'Estou sempre por perto, minha Maju. Nunca estás sozinha.' },
     { who: 'maju',    text: 'Sinto isso, vovó. Sinto mesmo.' },
     { who: 'vovoMae', text: 'Vai, meu amor. O colar vai ficar lindo.' },
+  ],
+
+  // Reencontro com os pais (Jonatha + Micaele) no Cais da Alfândega (d8) — cena cheia
+  osPais: [
+    { who: 'nar',  text: 'O sol começa a se deitar no Cais da Alfândega. Entre as jangadas, dois rostos conhecidos esperam.' },
+    { who: 'mica', text: 'Maju! Minha filha... olha só quanto chão tu andou!' },
+    { who: 'maju', text: 'Painho! Mainha! Vocês vieram!' },
+    { who: 'jona', text: 'Viemos, sim. A gente te viu de longe, atravessando o Recife inteiro.' },
+    { who: 'mica', text: 'Sol, mar, chuva, mangue, tambor, frevo... tu passou por tudo, meu amor.' },
+    { who: 'maju', text: 'Teve hora que cansei, mainha. Achei que não ia dar conta.' },
+    { who: 'jona', text: 'Mas deu. Tu já nasceu valente, filha — a coragem tava em ti desde o começo.' },
+    { who: 'mica', text: 'E o resto a fé carrega. A gente nunca soltou tua mão, mesmo de longe.' },
+    { who: 'maju', text: 'Eu senti vocês comigo o tempo todo.' },
+    { who: 'jona', text: 'Falta pouco agora. O vovô Maro te espera ali na ponta do cais, com a última maré.' },
+    { who: 'mica', text: 'Vai, minha Maju. A gente fica bem aqui, te vendo chegar.' },
+    { who: 'maju', text: 'Quando o colar tiver inteiro, eu volto pro abraço de vocês!' },
+    { who: 'nar',  text: 'Jonatha e Micaele acenam. O cais inteiro parece sorrir com a Maju.' },
+  ],
+  // Reencontro com os pais — fala curta (já se conheceram)
+  osPaisAgain: [
+    { who: 'mica', text: 'Tamo aqui, filha. Vai pegar o resto, que a gente te espera.' },
+    { who: 'jona', text: 'Coragem e fé, Maju. Já já tu volta com o colar inteiro.' },
+    { who: 'maju', text: 'Já tô indo! Amo vocês!' },
+  ],
+
+  // Reencontro das duas Marias na igreja — cena cheia (gate: met.vova && met.vovoMae)
+  asMarias: [
+    { who: 'nar',     text: 'Na fronteira do mangue e da Rua da Moeda, uma igrejinha branca guarda um silêncio dourado.' },
+    { who: 'maju',    text: 'Que paz é essa aqui dentro...' },
+    { who: 'vova',    text: 'Maju! Que bom que vieste, minha netinha.' },
+    { who: 'vovoMae', text: 'Eu sabia que tu ia chegar até aqui, meu amor.' },
+    { who: 'maju',    text: 'Vovó! As duas... juntas? Mas como?' },
+    { who: 'vova',    text: 'Quando o amor é grande, a distância some. Nem o céu separa o que é da família.' },
+    { who: 'vovoMae', text: 'As Marias dessa família sempre se encontram de algum jeito, Maju.' },
+    { who: 'maju',    text: 'Maria... o nome que vocês duas carregam. E a mainha também carrega no coração.' },
+    { who: 'vova',    text: 'É um fio que passa de geração em geração, minha neta. Ternura, força e fé.' },
+    { who: 'vovoMae', text: 'E esse fio também é teu, Maju. Você é feita do amor das duas Marias.' },
+    { who: 'maju',    text: 'Nunca vou esquecer isso. Nunca.' },
+    { who: 'nar',     text: 'A luz da tarde entra pelas janelas e envolve as três num abraço dourado.' },
+  ],
+  // Reencontro já visto — fala curta
+  asMariasAgain: [
+    { who: 'vova',    text: 'Estamos aqui, Maju. As Marias da tua família, sempre juntas.' },
+    { who: 'vovoMae', text: 'O amor que nos une não tem fim. Vai com força, meu amor.' },
+    { who: 'maju',    text: 'Amo vocês, minhas Marias.' },
   ],
 };
 

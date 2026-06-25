@@ -1,0 +1,24 @@
+%% Reencontro dos pais no Cais (d8) — fluxo de gating
+%% spec: specs/005-reencontro-pais/ · ADR-006
+flowchart TD
+    A[Mundo carregado] --> B{Distrito 8 (Cais)<br/>desbloqueado?}
+    B -- não --> C[Tile de osPais coberto pela névoa<br/>inacessível]
+    B -- sim --> D[osPais visível no cais<br/>drawPais: Jonatha + Micaele]
+
+    D --> E[Maju aproxima + toca ★ FALAR]
+    E --> F{met.osPais ?}
+    F -- falsy --> G[Cena cheia: STORY.meet.osPais<br/>jona + mica + maju falam]
+    G --> H[ao concluir diálogo:<br/>met.osPais = true + save]
+    F -- true --> I[Fala curta: STORY.meet.osPaisAgain]
+
+    H --> J[volta ao mundo]
+    I --> J
+
+    %% clímax permanece ortogonal — NÃO tocado por esta feature
+    D -. separado .-> K[Vovô Maro / startEnding / skyEnding<br/>INALTERADO]
+
+    subgraph INVARIANTES
+      L[osPais NÃO entra em PHASE_NODES]
+      M[TOTAL_PHASES permanece 31]
+      N[met.osPais só vira true — nunca regride]
+    end

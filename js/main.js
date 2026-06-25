@@ -84,35 +84,13 @@
     }
   }
 
-  // personagens-guia da família — posicionados na faixa de cima do bairro
-  const NPCS = [
-    { key: 'jona',    d: 0, dx: -52, dy: -176, draw: drawJonatha, kid: true },
-    { key: 'mica',    d: 0, dx:  52, dy: -176, draw: drawMicaele, kid: true },
-    { key: 'jeff',    d: 1, dx:   0, dy: -176, draw: drawJeff },
-    { key: 'ravi',    d: 2, dx: -52, dy: -176, draw: drawRavi, kid: true, lesson: 'Primo é parceiro pra toda aventura, chuva ou sol.' },
-    { key: 'nicolas', d: 2, dx:  52, dy: -176, draw: drawNico, kid: true, lesson: 'Primo é parceiro pra toda aventura, chuva ou sol.' },
-    { key: 'renato',  d: 3, dx:   0, dy: -176, draw: drawRenato, lesson: 'Fé é o que nos carrega quando as pernas cansam.' },
-    { key: 'bruno',   d: 5, dx:   0, dy: -176, draw: drawBruno, lesson: 'A família só soa bonito quando tá toda unida.' },
-    { key: 'vova',    d: 6, dx:   0, dy: -176, draw: drawVova },
-    { key: 'vovoMae', d: 7, dx:   0, dy: -176, draw: drawVovoMae, lesson: 'O amor que vai pro céu não desaparece.' },
-    { key: 'vovo',    d: 8, dx:   0, dy: -214, draw: drawVovo, ending: true },
-  ];
+  // personagens-guia da família — derivados do registro único (ADR-005, js/characters.js).
+  // x/y vêm do districtCenter logo abaixo (campo por-mundo, não pertence ao registro).
+  const NPCS = Characters.npcs();
   NPCS.forEach(n => { const c = districtCenter(n.d); n.x = c.x + n.dx; n.y = c.y + n.dy; });
 
-  // quem fala nos diálogos (retrato + nome + cor)
-  const SPEAKERS = {
-    maju:    { name: 'MAJU',          color: '#f2c038', face: MAJU_FACE, pal: FACE_PAL, body: drawMaju },
-    vovo:    { name: 'VOVÔ MARO',     color: '#caa15a', face: VOVO_FACE, pal: VOVO_FACE_PAL, body: drawVovo },
-    jona:    { name: 'JONATHA',       color: '#3fae7a', body: drawJonatha },
-    mica:    { name: 'MICAELE',       color: '#e87ab0', body: drawMicaele },
-    jeff:    { name: 'TITIO JEFF',    color: '#f2a83a', body: drawJeff },
-    vova:    { name: 'VOVÓ',          color: '#c79bd0', body: drawVova },
-    bruno:   { name: 'TITIO BRUNO',   color: '#8b5e2a', body: drawBruno },
-    renato:  { name: 'TITIO RENATO',  color: '#1e3a6e', body: drawRenato },
-    ravi:    { name: 'PRIMO RAVI',    color: '#e07020', body: drawRavi },
-    nicolas: { name: 'PRIMO NICOLAS', color: '#2a8a3a', body: drawNico },
-    vovoMae: { name: 'VOVÓ MARIA',    color: '#f0d878', body: drawVovoMae },
-  };
+  // quem fala nos diálogos (retrato + nome + cor) — derivado do registro único (ADR-005)
+  const SPEAKERS = Characters.speakers();
 
   // ---------- save (v3: done = fases concluídas; met = quem já conheci) ----------
   // Chave namespeada por deploy: GitHub Pages de usuário compartilha UMA origem
@@ -880,6 +858,25 @@
   function talkNpc(npc) {
     if (npc.ending && doneCount() >= TOTAL_PHASES) { startEnding(); return; }
 
+    // Igreja das Marias — gate narrativo: a cena cheia só abre depois de conhecer as duas
+    // avós (met.vova && met.vovoMae). Antes disso, dica genérica sem revelar qual avó falta
+    // (ADR-003). Não incrementa fase — é cena, não concha.
+    if (npc.key === 'asMarias') {
+      const jaViu = !!S.save.met.asMarias;
+      if (!S.save.met.vova || !S.save.met.vovoMae) {
+        S.toast = { text: 'Ainda não é o momento...', t: 3.5, color: '#d9b25c', bg: 'rgba(20,14,4,0.92)', textColor: '#d9b25c' };
+        return;
+      }
+      const lines = STORY.meet[jaViu ? 'asMariasAgain' : 'asMarias'] || STORY.meet.asMarias;
+      if (!lines?.length) return;
+      startDialogue(lines, 7, () => {
+        enterWorld();
+        S.save.met.asMarias = true;
+        save();
+      });
+      return;
+    }
+
     // Vovô Maro: progresso dinâmico no cais (caso especial).
     if (npc.key === 'vovo') {
       S.save.met.vovo = true; save();
@@ -1377,6 +1374,7 @@
 
   // ---------- depuração / testes ----------
   window.__game = S;
+  window.__story = STORY;   // expõe os diálogos para validação headless (spec 004)
   window.__openLevel = openLevel;
   window.__tap = (x, y) => handleTap(x, y);
   window.__world = {
@@ -1397,8 +1395,13 @@
     tapAt: (x, y) => handleTap(x, y),
     // re-testar as intros dos pais sem perder progresso: faz a missão voltar a ser "não explicada"
     rebrief: () => { S.save.briefed = false; S.save.met.jona = false; S.save.met.mica = false; save(); return 'briefed=false; fale com a Micaele e o Jonatha de novo'; },
-    // hooks de teste do onboarding (Fase 2): dispara ação como se a Maju estivesse perto do alvo
-    talk: key => { const n = NPCS.find(z => z.key === key); if (!n) return null; S.nearNpc = n; S.near = null; enterNear(); return S.mode; },
+    // hooks de teste do onboarding (Fase 2): dispara ação como se a Maju estivesse perto do alvo.
+    // Busca em NPCS; se não achar, em World3D.worldNpcs (cenas especiais como asMarias — spec 004).
+    talk: key => {
+      const n = NPCS.find(z => z.key === key) || World3D.worldNpcs.find(z => z.key === key) || null;
+      if (!n) return null;
+      S.nearNpc = n; S.near = null; enterNear(); return S.mode;
+    },
     tryEnter: g => { const s = SPOTS.find(z => z.g === g); if (!s) return null; S.near = s; S.nearNpc = null; enterNear(); return S.mode; },
     finish: () => { let n = 0; while (S.mode === 'dialogue' && n++ < 300) dlgTap(); return S.mode; },
   };

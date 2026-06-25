@@ -1,0 +1,16 @@
+flowchart TD
+    A([Maju toca a igreja em d6/d7]) --> B{met.vova && met.vovoMae?}
+    B -- não --> C[Dica suave: ainda não é hora]
+    C --> Z([Volta ao mundo, nada marcado])
+    B -- sim --> D{met.asMarias?}
+    D -- não --> E[Cena cheia: as duas Marias se encontram]
+    E --> F[Maria José viva + Maria Rita céu + Maju\nhonram o nome Maria]
+    F --> G[Marca met.asMarias = true + save]
+    G --> Z2([Volta ao mundo])
+    D -- sim --> H[Fala curta de reencontro asMariasAgain]
+    H --> Z2
+
+    classDef gate fill:#2a2a3a,stroke:#f0d878,color:#f0d878;
+    classDef scene fill:#1a2e10,stroke:#88ee88,color:#e8f8d8;
+    class B,D gate;
+    class E,F,H scene;
