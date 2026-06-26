@@ -704,6 +704,14 @@ globalThis.World3D = (() => {
     return { x, y: y + TH / 2 };
   }
 
+  // posição de tela (px) do NPC do passeio (por key) — usada pela seta-guia de onboarding
+  function npcScreen(key) {
+    const npc = WORLD_NPCS.find(n => n.key === key);
+    if (!npc) return null;
+    const { x, y } = iso(npc.col, npc.row);
+    return { x, y: y + TH / 2 };
+  }
+
   function nearNpc(districtUnlockedFn) {
     for (const npc of WORLD_NPCS) {
       if (!districtUnlockedFn(npc.d)) continue;
@@ -755,21 +763,44 @@ globalThis.World3D = (() => {
     return unlockFn ? tileVisible(ci, ri, unlockFn) : true;
   }
 
-  // próxima direção: reto → direita → esquerda → ré; 1ª cujo próximo tile é água visível
+  // mar ABERTO: o sprite do tubarão é mais alto que um tile e, na ordem de profundidade
+  // iso, é pintado por CIMA dos tiles "atrás" dele na tela (N, W, NW — col+row menor).
+  // Se algum desses for terra, o tubarão *parece* estar em terra (bug 006: "tubarão em
+  // terra"). Então ele só patrulha tiles d'água cujos vizinhos de cima-tela também são
+  // água — ou estão acima do horizonte (ri-1 < 0). Isso o mantém no mar do norte, sempre
+  // claramente sobre o mar e atrás da terra, nunca encobrindo-a.
+  function isSharkOpenSea(col, row, unlockFn) {
+    if (!isSharkWater(col, row, unlockFn)) return false;
+    const ci = Math.floor(col), ri = Math.floor(row);
+    for (const [dc, dr] of [[0, -1], [-1, 0], [-1, -1]]) {   // N, W, NW (tiles que o sprite encobre)
+      const nc = ci + dc, nr = ri + dr;
+      if (nr < 0) continue;          // acima do mapa = céu/horizonte, ok
+      if (nc < 0) return false;      // fora a oeste = borda de terra/mangue
+      const t = MAP[nr][nc];
+      if (t !== '~' && t !== 'w') return false;
+    }
+    return true;
+  }
+
+  // próxima direção: reto → direita → esquerda → ré; 1ª cujo próximo tile é mar aberto
+  // visível. null = encurralado (nenhuma direção é mar aberto) — o tubarão fica parado
+  // no trecho em vez de avançar para terra.
   function sharkNextDir(unlockFn) {
     for (const k of [0, 1, 3, 2]) {
       const d = sharkTurn(shark.dir, k);
       const v = SHARK_DIRS[d];
-      if (isSharkWater(Math.floor(shark.col) + v.dc, Math.floor(shark.row) + v.dr, unlockFn)) return d;
+      if (isSharkOpenSea(Math.floor(shark.col) + v.dc, Math.floor(shark.row) + v.dr, unlockFn)) return d;
     }
-    return shark.dir;
+    return null;
   }
 
-  // mira o centro do próximo tile de água (alvo FIXO por trecho — não recalcular a cada passo,
-  // senão o alvo "foge" ao cruzar a fronteira e o tubarão atravessa para a terra)
+  // mira o centro do próximo tile de mar aberto (alvo FIXO por trecho — não recalcular a
+  // cada passo, senão o alvo "foge" ao cruzar a fronteira e o tubarão atravessa para a terra)
   function sharkRetarget(unlockFn) {
-    shark.dir = sharkNextDir(unlockFn);
-    const v = SHARK_DIRS[shark.dir];
+    const d = sharkNextDir(unlockFn);
+    if (d === null) { shark.tcol = shark.col; shark.trow = shark.row; return; }  // encurralado: parado
+    shark.dir = d;
+    const v = SHARK_DIRS[d];
     shark.tcol = Math.floor(shark.col) + 0.5 + v.dc;
     shark.trow = Math.floor(shark.row) + 0.5 + v.dr;
   }
@@ -822,7 +853,7 @@ globalThis.World3D = (() => {
     drawShark(ctx, sx - 8 * s, cy - 3.5 * s, s, flip);
   }
 
-  return { draw, update, nearSpot, nearNpc, spotScreen, nodeScreen, currentDistrict, districtName, reset, player,
+  return { draw, update, nearSpot, nearNpc, spotScreen, nodeScreen, npcScreen, currentDistrict, districtName, reset, player,
            worldNpcs: WORLD_NPCS, npcDraw: NPC_DRAW,
            walkable, tileVisible, phaseNodes: PHASE_NODES, marcoZero: MARCO_ZERO, coqueiros: COQUEIROS,
            shark: sharkSnapshot, stepShark };
