@@ -257,14 +257,14 @@ STORY.meet = {
   jeff: [
     { who: 'jeff', text: 'Maju?! Sou eu, teu titio Jeff!' },
     { who: 'maju', text: 'Titio Jeff! O que você faz aqui no meio do mangue?' },
-    { who: 'jeff', text: 'Pedalando, sobrinha! Eu adoro cortar o mangue de bicicleta, sentindo o vento.' },
+    { who: 'jeff', text: 'Vim pegar carangueijo' },
     { who: 'jeff', text: 'O mangue parece só lama, mas é daqui que a vida toda do mar começa. Pra atravessar é preciso força nas pernas.' },
     { who: 'jeff', text: 'Ó, guarda no coração: lá na beira-mar tem uma igrejinha, a de Nossa Senhora da Piedade.' },
-    { who: 'jeff', text: 'Quando tu tiver conhecido tuas duas vós, vai até lá, é onde as Marias da nossa família se reencontram.' },
-    { who: 'maju', text: 'As duas Marias, na igreja à beira-mar... vou guardar, titio!' },
+    { who: 'jeff', text: 'Vai até lá, é onde as Marias da nossa família se reencontram.' },
+    { who: 'maju', text: 'Na igreja à beira-mar... vou guardar, titio!' },
   ],
   jeffAgain: [
-    { who: 'jeff', text: 'Bora pedalar comigo, sobrinha! E não esquece: a igrejinha à beira-mar te espera, com as Marias.' },
+    { who: 'jeff', text: 'Sobrinha! Não esquece: a igrejinha à beira-mar.' },
     { who: 'maju', text: 'Não esqueço, titio! Já já volto.' },
   ],
   // Vovó — Pátio do Frevo (Rua da Moeda)
