@@ -117,12 +117,16 @@
         // "OS PRIMOS" (met.primos) não revê as introduções — herda os dois como conhecidos.
         const met = (s.met && typeof s.met === 'object') ? s.met : {};
         if (met.primos) { met.ravi = true; met.nicolas = true; }
+        // Migração feat/010: quem já viu o desfecho (fin=true) num build anterior mantém o fim
+        // destravado — o gate met.vovoMae (ADR-008) não pode regredir quem já terminou.
+        if (s.fin) met.vovoMae = true;
         return { v: 3, done: s.done || {}, opened: !!s.opened, fin: !!s.fin, maju: s.maju || null, met, briefed };
       }
       const prog = s.v === 2 ? Math.min(TOTAL_PHASES, s.prog || 0) : 0;
       const done = {};
       for (let i = 1; i <= Math.min(prog, TOTAL_PHASES); i++) done[i] = true;
-      return { v: 3, done, opened: !!s.opened, fin: prog >= TOTAL_PHASES, maju: null, met: {}, briefed: !!s.opened };
+      const finV2 = prog >= TOTAL_PHASES;
+      return { v: 3, done, opened: !!s.opened, fin: finV2, maju: null, met: finV2 ? { vovoMae: true } : {}, briefed: !!s.opened };
     } catch { return emptySave(); }
   }
   function load() {

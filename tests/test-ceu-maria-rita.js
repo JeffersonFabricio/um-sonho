@@ -238,7 +238,7 @@ function readyForEnding(g) {
   readyForEnding(g);
   g.W.talk('vovo'); g.W.finish();      // 1º desfecho → ceu
   g.S.winT = 12; g.W.tapAt(180, 300);  // volta ao mundo
-  const mode2 = g.W.talk('vovo');      // fala de novo
+  g.W.talk('vovo');      // fala de novo
   g.W.finish();
   check('Re-disparo: 2ª vez conclui sem travar (volta a ceu)', g.S.mode === 'ceu', g.S.mode);
   check('Re-disparo: save íntegro (31 conchas + fin)', Object.keys(g.S.save.done).length === 31 && g.S.save.fin === true, '');
@@ -254,6 +254,21 @@ function readyForEnding(g) {
   check('Sem conchas: não vira ceu', g.S.mode !== 'ceu', g.S.mode);
   check('Sem conchas: fin permanece false', g.S.save.fin !== true, g.S.save.fin);
   check('Sem conchas: Vovô dá fala de progresso (diálogo)', mode === 'dialogue', mode);
+}
+
+// --- Cenário: Save já finalizado num build anterior não é regredido pelo gate (migração ADR-008) ---
+{
+  const SAVE_KEY = 'maresRecife:pernambuco-meu-pais';
+  const done = {}; for (let gg = 1; gg <= 31; gg++) done[gg] = true;
+  // save v3 antigo: terminou o jogo (fin=true) mas nunca entrou na igreja (sem met.vovoMae)
+  const old = { v: 3, done, opened: true, fin: true, maju: null, met: { jona: true, mica: true }, briefed: true };
+  const g = loadGame({ seed: { [SAVE_KEY]: JSON.stringify(old) } });
+  check('Migração: fin=true preservado', g.S.save.fin === true, g.S.save.fin);
+  check('Migração: met.vovoMae herdado de quem já terminou', g.S.save.met.vovoMae === true, g.S.save.met.vovoMae);
+  g.S.mode = 'world';
+  g.W.talk('vovo');
+  check('Migração: jogador que já terminou revê o desfecho (não a dica)',
+    g.S.dlg && g.S.dlg.lines === g.STORY.skyEnding, !!(g.S.dlg && g.S.dlg.lines));
 }
 
 // --- Regressão: jogo carrega sem exceção ---
