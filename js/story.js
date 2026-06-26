@@ -252,20 +252,23 @@ STORY.meet = {
     { who: 'jona', text: 'Tá indo lindo, filha. Eu sei que tu consegue — vai lá e volta logo!' },
     { who: 'maju', text: 'Pode deixar, painho!' },
   ],
-  // Titio Jeff — praia de Boa Viagem
-  // Titio Jeff — Manguezal (d3): o titio da pedalada, que guia a Maju até a igreja das Marias
+  // Titio Jeff — Pátio do Terço (d5): a alfaia do maracatu e a lição da união (ninguém bate sozinho)
   jeff: [
-    { who: 'jeff', text: 'Maju?! Sou eu, teu titio Jeff!' },
-    { who: 'maju', text: 'Titio Jeff! O que você faz aqui no meio do mangue?' },
-    { who: 'jeff', text: 'Pedalando, sobrinha! Eu adoro cortar o mangue de bicicleta, sentindo o vento.' },
-    { who: 'jeff', text: 'O mangue parece só lama, mas é daqui que a vida toda do mar começa. Pra atravessar é preciso força nas pernas.' },
-    { who: 'jeff', text: 'Ó, guarda no coração: lá na beira-mar tem uma igrejinha, a de Nossa Senhora da Piedade.' },
-    { who: 'jeff', text: 'Quando tu tiver conhecido tuas duas vós, vai até lá — é onde as Marias da nossa família se reencontram.' },
-    { who: 'maju', text: 'As duas Marias, na igreja à beira-mar... vou guardar, titio!' },
+    { who: 'jeff', text: 'Maju! Titio Jeff aqui, no pátio do maracatu!' },
+    { who: 'maju', text: 'Titio Jeff! Que barulho bonito é esse?' },
+    { who: 'jeff', text: 'É a alfaia, sobrinha. O tambor do maracatu. Sente como o chão treme?' },
+    { who: 'maju', text: 'Parece que o coração da cidade tá batendo, titio!' },
+    { who: 'jeff', text: 'Exatamente. E sabe por que o tambor soa assim de forte?' },
+    { who: 'maju', text: 'Por quê?' },
+    { who: 'jeff', text: 'Porque ninguém bate sozinho. Cada mão no couro, cada voz no canto — só funciona porque é junto.' },
+    { who: 'jeff', text: 'A família é igual, Maju. A gente só soa bonito quando tá unido.' },
+    { who: 'maju', text: 'Então a nossa família é um maracatu, titio!' },
+    { who: 'jeff', text: 'Do melhor! Vai lá, sobrinha. O titio Jeff tá no seu ritmo, sempre.' },
   ],
   jeffAgain: [
-    { who: 'jeff', text: 'Bora pedalar comigo, sobrinha! E não esquece: a igrejinha à beira-mar te espera, com as Marias.' },
-    { who: 'maju', text: 'Não esqueço, titio! Já já volto.' },
+    { who: 'jeff', text: 'Ouve o tambor, Maju. Quando tiver com saudade da família, ele toca aqui dentro.' },
+    { who: 'maju', text: 'Tô ouvindo, titio. Tô sempre ouvindo.' },
+    { who: 'jeff', text: 'Vai, sobrinha. O maracatu te acompanha em cada passo.' },
   ],
   // Vovó — Pátio do Frevo (Rua da Moeda)
   vova: [
@@ -330,23 +333,19 @@ STORY.meet = {
     { who: 'renato', text: 'Isso mesmo, sobrinha. O Padrinho Padre Cícero estaria orgulhoso de ti.' },
   ],
 
-  // Titio Bruno — Pátio do Terço (d5, maracatu e comunidade)
+  // Titio Bruno — Manguezal (d3): o titio da pedalada, que guia a Maju até a igreja das Marias
   bruno: [
-    { who: 'bruno', text: 'Maju! Titio Bruno aqui, no pátio do maracatu!' },
-    { who: 'maju',  text: 'Titio Bruno! Que barulho bonito é esse?' },
-    { who: 'bruno', text: 'É a alfaia, sobrinha. O tambor do maracatu. Sente como o chão treme?' },
-    { who: 'maju',  text: 'Parece que o coração da cidade tá batendo, titio!' },
-    { who: 'bruno', text: 'Exatamente. E sabe por que o tambor soa assim de forte?' },
-    { who: 'maju',  text: 'Por quê?' },
-    { who: 'bruno', text: 'Porque ninguém bate sozinho. Cada mão no couro, cada voz no canto — só funciona porque é junto.' },
-    { who: 'bruno', text: 'A família é igual, Maju. A gente só soa bonito quando tá unido.' },
-    { who: 'maju',  text: 'Então a nossa família é um maracatu, titio!' },
-    { who: 'bruno', text: 'Do melhor! Vai lá, sobrinha. O titio Bruno tá no seu ritmo, sempre.' },
+    { who: 'bruno', text: 'Maju?! Sou eu, teu titio Bruno!' },
+    { who: 'maju',  text: 'Titio Bruno! O que você faz aqui no meio do mangue?' },
+    { who: 'bruno', text: 'Pedalando, sobrinha! Eu adoro cortar o mangue de bicicleta, sentindo o vento.' },
+    { who: 'bruno', text: 'O mangue parece só lama, mas é daqui que a vida toda do mar começa. Pra atravessar é preciso força nas pernas.' },
+    { who: 'bruno', text: 'Ó, guarda no coração: lá na beira-mar tem uma igrejinha, a de Nossa Senhora da Piedade.' },
+    { who: 'bruno', text: 'Quando tu tiver conhecido tuas duas vós, vai até lá — é onde as Marias da nossa família se reencontram.' },
+    { who: 'maju',  text: 'As duas Marias, na igreja à beira-mar... vou guardar, titio!' },
   ],
   brunoAgain: [
-    { who: 'bruno', text: 'Ouve o tambor, Maju. Quando tiver com saudade da família, ele toca aqui dentro.' },
-    { who: 'maju',  text: 'Tô ouvindo, titio. Tô sempre ouvindo.' },
-    { who: 'bruno', text: 'Vai, sobrinha. O maracatu te acompanha em cada passo.' },
+    { who: 'bruno', text: 'Bora pedalar comigo, sobrinha! E não esquece: a igrejinha à beira-mar te espera, com as Marias.' },
+    { who: 'maju',  text: 'Não esqueço, titio! Já já volto.' },
   ],
 
   // Vó Maria Rita (materna, do céu) NÃO tem cena solta no mundo: ela é uma aparição que surge

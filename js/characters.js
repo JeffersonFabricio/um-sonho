@@ -31,9 +31,9 @@ const CHARACTERS = {
              free: { dx: -52, dy: -176 }, world: { col: 5, row: 6 } },
   mica:    { name: 'MICAELE',       color: '#e87ab0', draw: drawMicaele, d: 0, kid: true,
              free: { dx:  52, dy: -176 }, world: { col: 4, row: 6 } },
-  // Titio Jeff — Manguezal (d3): o titio da pedalada, que guia a Maju até a igreja das Marias.
-  jeff:    { name: 'TITIO JEFF',    color: '#f2a83a', draw: drawJeff, d: 3,
-             free: { dx: 0, dy: -176 }, world: { col: 6, row: 13 } },
+  // Titio Jeff — Pátio do Terço (d5): o tambor do maracatu e a lição da união (ninguém bate sozinho).
+  jeff:    { name: 'TITIO JEFF',    color: '#f2a83a', draw: drawJeff, d: 5, lesson: LESSONS.uniao,
+             free: { dx: 0, dy: -176 }, world: { col: 18, row: 13, label: 'T. JEFF' } },
 
   ravi:    { name: 'PRIMO RAVI',    color: '#e07020', draw: drawRavi, d: 2, kid: true, lesson: LESSONS.primos,
              free: { dx: -52, dy: -176 }, world: { col: 18, row: 5, label: 'RAVI' } },
@@ -43,8 +43,9 @@ const CHARACTERS = {
   // Titio Renato — Boa Viagem (d1): Padre Cícero e as promessas nordestinas (lição de fé).
   renato:  { name: 'TITIO RENATO',  color: '#1e3a6e', draw: drawRenato, d: 1, lesson: LESSONS.fe,
              free: { dx: 0, dy: -176 }, world: { col: 13, row: 6, label: 'RENATO', color: '#8b5e2a' } },
-  bruno:   { name: 'TITIO BRUNO',   color: '#8b5e2a', draw: drawBruno, d: 5, lesson: LESSONS.uniao,
-             free: { dx: 0, dy: -176 }, world: { col: 18, row: 13, label: 'T. BRUNO', color: '#5a4030' } },
+  // Titio Bruno — Manguezal (d3): o titio da pedalada, que guia a Maju até a igreja das Marias.
+  bruno:   { name: 'TITIO BRUNO',   color: '#8b5e2a', draw: drawBruno, d: 3,
+             free: { dx: 0, dy: -176 }, world: { col: 6, row: 13, color: '#5a4030' } },
   // As duas Marias. A Vó Maria José (paterna, VIVA) é conhecida no frevo (d6). A Vó Maria Rita
   // (materna, do CÉU) NÃO fica no mundo — é uma aparição: surge só DENTRO da igreja, na cena do
   // reencontro (asMarias). Por isso ela não tem `world` nem `free` (não é NPC andável); segue
